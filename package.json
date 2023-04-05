@@ -1,0 +1,34 @@
+{
+  "dependencies": {
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0"
+  },
+  "name": "raz-be",
+  "description": "Backend library for an online furniture store website called RAZ uses express.js",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/digi-squad/raz-be.git"
+  },
+  "keywords": [
+    "expressjs",
+    "backend",
+    "raz",
+    "postgresql",
+    "postgre",
+    "mongodb",
+    "javascript",
+    "js"
+  ],
+  "author": "digi-squad",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/digi-squad/raz-be/issues"
+  },
+  "homepage": "https://github.com/digi-squad/raz-be#readme"
+}
