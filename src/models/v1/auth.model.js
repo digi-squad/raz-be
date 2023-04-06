@@ -12,11 +12,21 @@ const checkEmail = (email) => {
   });
 };
 
-const createUser = (email, password) => {
+const checkRole = (roleId) => {
+  return new Promise((resolve, reject) => {
+    const sql = "SELECT * FROM user_roles where id = $1";
+    db.query(sql, [roleId], (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
+  });
+};
+
+const createUser = (email, password, roleId) => {
   return new Promise(async (resolve, reject) => {
     const encryptedPass = await bcrypt.hash(password, 15);
-    const sql = `INSERT INTO users (email, password) VALUES ($1, $2)`;
-    db.query(sql, [email, encryptedPass], (err, result) => {
+    const sql = `INSERT INTO users (email, password, role_id) VALUES ($1, $2, $3)`;
+    db.query(sql, [email, encryptedPass, roleId], (err, result) => {
       if (err) return reject(err);
       resolve(result);
     });
@@ -26,4 +36,5 @@ const createUser = (email, password) => {
 module.exports = {
   createUser,
   checkEmail,
+  checkRole,
 };
