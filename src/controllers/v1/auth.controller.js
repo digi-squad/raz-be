@@ -1,4 +1,7 @@
 const authModel = require("../../models/v1/auth.model");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { jwtSecretKey } = require("../../configs/env");
 
 const register = async (req, res) => {
   const { email, password, role } = req.body;
@@ -35,4 +38,51 @@ const register = async (req, res) => {
   }
 };
 
-module.exports = { register };
+const login = async (req, res) => {
+  const { email, password } = req.body;
+  if (email == undefined || email === "")
+    return res.status(422).json({ msg: "EMAIL_IS_REQUIRED" });
+  if (password == undefined || password === "")
+    return res.status(422).json({ msg: "PASSWORD_IS_REQUIRED" });
+
+  try {
+    // check from db if email exists
+    const result = await authModel.getUserByEmail(email);
+    if (result.rows.length < 1)
+      return res.status(401).json({
+        msg: "WRONG_EMAIL_OR_PASSWORD",
+      });
+
+    // bcrypt compare password
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      result.rows[0].password
+    );
+    if (!isPasswordValid)
+      return res.status(401).json({
+        msg: "WRONG_EMAIL_OR_PASSWORD",
+      });
+
+    const payload = {
+      id: result.rows[0].id,
+      img: result.rows[0].img,
+    };
+
+    const jwtOptions = { expiresIn: "20m" };
+
+    jwt.sign(payload, jwtSecretKey, jwtOptions, (err, token) => {
+      if (err) throw err;
+      res.status(200).json({
+        msg: "LOGIN_SUCCESS",
+        data: { token },
+      });
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({
+      msg: "Internal server error",
+    });
+  }
+};
+
+module.exports = { register, login };

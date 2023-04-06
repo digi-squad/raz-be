@@ -22,6 +22,16 @@ const checkRole = (roleId) => {
   });
 };
 
+const getUserByEmail = (email) => {
+  return new Promise((resolve, reject) => {
+    const sql = "SELECT * FROM users where LOWER(email) = LOWER($1)";
+    db.query(sql, [email], (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
+  });
+};
+
 const createUser = (email, password, roleId) => {
   return new Promise(async (resolve, reject) => {
     const encryptedPass = await bcrypt.hash(password, 15);
@@ -37,4 +47,5 @@ module.exports = {
   createUser,
   checkEmail,
   checkRole,
+  getUserByEmail,
 };
