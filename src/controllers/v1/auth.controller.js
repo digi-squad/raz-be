@@ -18,7 +18,7 @@ const register = async (req, res) => {
   try {
     // check email
     const checkEmail = await authModel.checkEmail(email);
-    if (checkEmail.rows[0].count > 0)
+    if (checkEmail.rows.length > 0)
       return res.status(409).json({ msg: "EMAIL_ALREADY_REGISTERED" });
 
     // check role
@@ -85,4 +85,110 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+const requestResetPass = async (req, res) => {
+  const { email } = req.body;
+  if (email == undefined || email === "")
+    return res.status(422).json({ msg: "EMAIL_IS_REQUIRED" });
+  try {
+    const result = await authModel.checkEmail(email);
+    if (result.rows.length < 1)
+      return res.status(404).json({
+        msg: "EMAIL_NOT_REGISTERED",
+      });
+
+    // delete all reset link for unvalidate
+    await authModel.deleteAllResetPass(result.rows[0].id);
+
+    // generate verify id for reset
+    const generate = await authModel.requestResetPass(result.rows[0].id);
+    console.log(`LINK: /resetpass/?verify=${generate.rows[0].verify}`);
+    res.status(201).json({
+      msg: "RESET_LINK_HAS_BEEN_CREATED",
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({
+      msg: "INTERNAL_SERVER_ERROR",
+    });
+  }
+};
+
+const checkResetPass = async (req, res) => {
+  const { verify } = req.query;
+  if (verify == undefined || verify === "")
+    return res.status(404).json({ msg: "VERIFY_REQUIRED" });
+
+  try {
+    const result = await authModel.checkResetPass(verify);
+    if (result.rows.length < 1)
+      return res.status(404).json({
+        msg: "RESET_PASSWORD_NOT_FOUND",
+      });
+
+    const expired_time = new Date(result.rows[0].expired_at);
+    const now = new Date();
+    console.log(`${expired_time}\n${now}`);
+    if (now > expired_time)
+      return res.status(403).json({
+        msg: "LINK_EXPIRED",
+      });
+
+    res.status(200).json({
+      msg: "RESET_PASSWORD_FOUND",
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({
+      msg: "INTERNAL_SERVER_ERROR",
+    });
+  }
+};
+
+const resetPass = async (req, res) => {
+  const { password } = req.body;
+
+  const { verify } = req.query;
+  if (verify == undefined || verify === "")
+    return res.status(404).json({ msg: "VERIFY_REQUIRED" });
+  if (password == undefined || parseInt(password.length) < 8)
+    return res.status(422).json({ msg: "PASSWORD_ATLEAST_8_CHAR" });
+
+  try {
+    const result = await authModel.checkResetPass(verify);
+    if (result.rows.length < 1)
+      return res.status(404).json({
+        msg: "RESET_PASSWORD_NOT_FOUND",
+      });
+
+    const expired_time = new Date(result.rows[0].expired_at);
+    const now = new Date();
+    console.log(`${expired_time}\n${now}`);
+    if (now > expired_time)
+      return res.status(403).json({
+        msg: "LINK_EXPIRED",
+      });
+
+    // unvalidate all verify from client user
+    await authModel.deleteAllResetPass(result.rows[0].user_id);
+
+    // new password
+    await authModel.newPassword(result.rows[0].user_id, password);
+
+    res.status(200).json({
+      msg: "SUCCESS_RESET_PASSWORD",
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({
+      msg: "INTERNAL_SERVER_ERROR",
+    });
+  }
+};
+
+module.exports = {
+  register,
+  login,
+  requestResetPass,
+  checkResetPass,
+  resetPass,
+};
