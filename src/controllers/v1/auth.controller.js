@@ -65,6 +65,7 @@ const login = async (req, res) => {
 
     const payload = {
       id: result.rows[0].id,
+      role: result.rows[0].role_id,
       img: result.rows[0].img,
     };
 
