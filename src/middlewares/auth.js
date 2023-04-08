@@ -10,7 +10,7 @@ const check = (req, res, next) => {
     });
 
   // throw away "Bearer" word
-  const token = bearerToken.split(" ")[1];
+  const token = authHeader.split(" ")[1];
 
   // verify
   jwt.verify(token, jwtSecretKey, (err, payload) => {
