@@ -8,7 +8,7 @@ const getProfile = (userId, role) => {
     }
     const sql = `SELECT id, email, img ${store} FROM users WHERE id = $1`;
     db.query(sql, [userId], (err, result) => {
-      if (err) reject(err);
+      if (err) return reject(err);
       resolve(result);
     });
   });
@@ -60,10 +60,30 @@ const editProfile = (userId, body) => {
 
     const sql = `UPDATE users SET ${input} WHERE id = ${count + 1}`;
     db.query(sql, values, (err, result) => {
-      if (err) reject(err);
+      if (err) return reject(err);
       resolve(result);
     });
   });
 };
 
-module.exports = { getProfile, editProfile };
+const getWishlists = (userId) => {
+  return new Promise((resolve, reject) => {
+    const sql =
+      "SELECT uw.product_id, p.stock, p.price FROM user_wishlists uw JOIN products p ON p.id = uw.product_id WHERE user_id = $1";
+    db.query(sql, [userId], (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
+  });
+};
+const addWishlist = (userId, productId) => {
+  return new Promise((resolve, reject) => {
+    const sql = "INSERT INTO products (product_id, user_id) VALUES ($1, $2)";
+    db.query(sql, [productId, userId], (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
+  });
+};
+
+module.exports = { getProfile, editProfile, getWishlists, addWishlist };

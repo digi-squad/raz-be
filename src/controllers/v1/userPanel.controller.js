@@ -27,4 +27,40 @@ const editProfile = async (req, res) => {
   }
 };
 
-module.exports = { getProfile, editProfile };
+const getWishlists = async (req, res) => {
+  try {
+    const { id } = req.authInfo;
+    const result = await userPanelModel.getWishlists(id);
+    if (result.rows.length < 1)
+      return res.status(200).json({
+        data: result.rows,
+        msg: "WISHLIST_EMPTY",
+      });
+    res.status(200).json({
+      data: result.rows,
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({
+      msg: "INTERNAL_SERVER_ERROR",
+    });
+  }
+};
+
+const addWishlist = async (req, res) => {
+  try {
+    const { id } = req.authInfo;
+    const { product_id } = req.body;
+    await userPanelModel.addWishlist(id, product_id);
+    res.status(201).json({
+      msg: "WISHLIST_ADDED",
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({
+      msg: "INTERNAL_SERVER_ERROR",
+    });
+  }
+};
+
+module.exports = { getProfile, editProfile, getWishlists, addWishlist };
