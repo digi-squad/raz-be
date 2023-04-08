@@ -1,6 +1,6 @@
 const db = require("../../configs/pg");
 
-const insertProduct = (body) => {
+const insertProduct = (body, user_id) => {
   return new Promise((resolve, reject) => {
     const sql =
       "insert into products (name,description,sold,stock,price,user_id,category_id,brand_id,condition_id,size_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) returning id";
@@ -102,9 +102,21 @@ const getProduct = (params) => {
       }
       queryParams.push(sizesQuery);
     }
+    if (params.colors) {
+      const colorsQuery = parseInt(params.colors);
+      if (queryParams.length === 0) {
+        query += " WHERE product_colors.product_id = $1";
+      } else {
+        query += " AND product_colors.product_id = $2";
+      }
+      queryParams.push(colorsQuery);
+    }
     if (params.min_price && params.max_price) {
       const minPriceQuery = parseInt(params.min_price);
       const maxPriceQuery = parseInt(params.max_price);
+      if (minPriceQuery >= maxPriceQuery) {
+        reject("Min price should be lower than max price");
+      }
       if (queryParams.length === 0) {
         query += " WHERE products.price >= $1 AND products.price <= $2";
       } else {
@@ -113,28 +125,57 @@ const getProduct = (params) => {
       queryParams.push(minPriceQuery);
       queryParams.push(maxPriceQuery);
     }
-    query += ` GROUP BY
+    query += `
+    GROUP BY
             products.id,
             product_categories.name,
             product_brands.name,
             product_conditions.name,
             product_sizes.name`;
+    if (params.limit) {
+      const limitQuery = parseInt(params.limit);
+      query += ` LIMIT $${queryParams.length + 1}`;
+      queryParams.push(limitQuery);
+    }
     db.query(query, queryParams)
       .then((result) => resolve(result))
-      .catch((error) => reject(error));
+      .catch((error) => reject(error), console.log(query));
   });
 };
 
 const getMetadata = (params) => {
   return new Promise((resolve, reject) => {
-    let query = `SELECT COUNT(*) AS total_data FROM products`;
+    let query = `SELECT
+      products.id,
+      products.name,
+      products.description,
+      products.stock,
+      products.price,
+      product_categories.name AS category_name,
+      product_brands.name AS brand_name,
+      product_conditions.name AS condition_name,
+      product_sizes.name AS size_name,
+      array_agg(DISTINCT product_colors.name || ': ' || product_colors.hex_code) AS color,
+      array_agg(DISTINCT product_images.url) AS image_urls,
+      COUNT(products.id) OVER() AS total_data
+    FROM
+      products
+      JOIN product_categories ON products.category_id = product_categories.id
+      JOIN product_brands ON products.brand_id = product_brands.id
+      JOIN product_conditions ON products.condition_id = product_conditions.id
+      JOIN product_sizes ON products.size_id = product_sizes.id
+      LEFT JOIN product_colors ON products.id = product_colors.product_id
+      LEFT JOIN product_images ON products.id = product_images.product_id`;
+
     let queryParams = [];
+
     // search filter
     if (params.search) {
       const searchQuery = `%${params.search}%`;
       query += " WHERE products.name ILIKE $1";
       queryParams.push(searchQuery);
     }
+
     // category filter
     if (params.category) {
       const categoryQuery = parseInt(params.category);
@@ -145,6 +186,7 @@ const getMetadata = (params) => {
       }
       queryParams.push(categoryQuery);
     }
+
     // size filter
     if (params.sizes) {
       const sizesQuery = parseInt(params.sizes);
@@ -154,6 +196,44 @@ const getMetadata = (params) => {
         query += " AND products.size.id = $2";
       }
       queryParams.push(sizesQuery);
+    }
+
+    // color filter
+    if (params.colors) {
+      const colorsQuery = parseInt(params.colors);
+      if (queryParams.length === 0) {
+        query += " WHERE product_colors.product_id = $1";
+      } else {
+        query += " AND product_colors.product_id = $2";
+      }
+      queryParams.push(colorsQuery);
+    }
+
+    // price filter
+    if (params.min_price && params.max_price) {
+      const minPriceQuery = parseInt(params.min_price);
+      const maxPriceQuery = parseInt(params.max_price);
+      if (minPriceQuery >= maxPriceQuery) {
+        reject("Min price should be lower than max price");
+      }
+      if (queryParams.length === 0) {
+        query += " WHERE products.price >= $1 AND products.price <= $2";
+      } else {
+        query += " AND products.price >= $3 AND products.price <= $4";
+      }
+      queryParams.push(minPriceQuery);
+      queryParams.push(maxPriceQuery);
+    }
+    query += ` GROUP BY
+              products.id,
+              product_categories.name,
+              product_brands.name,
+              product_conditions.name,
+              product_sizes.name`;
+    if (params.limit) {
+      const limitQuery = parseInt(params.limit);
+      query += ` LIMIT $${queryParams.length + 1}`;
+      queryParams.push(limitQuery);
     }
     db.query(query, queryParams, (error, result) => {
       if (error) {
