@@ -6,7 +6,7 @@ const getProfile = (userId, role) => {
     if (role === 2) {
       store = ",store_name, store_desc";
     }
-    const sql = `SELECT id, email, img ${store} FROM users WHERE id = $1`;
+    const sql = `SELECT id, email, name, img ${store} FROM users WHERE id = $1`;
     db.query(sql, [userId], (err, result) => {
       if (err) return reject(err);
       resolve(result);
