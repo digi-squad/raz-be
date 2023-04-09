@@ -69,7 +69,7 @@ const login = async (req, res) => {
       img: result.rows[0].img,
     };
 
-    const jwtOptions = { expiresIn: "20m" };
+    const jwtOptions = { expiresIn: "30m" };
 
     jwt.sign(payload, jwtSecretKey, jwtOptions, (err, token) => {
       if (err) throw err;

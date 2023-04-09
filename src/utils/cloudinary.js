@@ -15,7 +15,7 @@ const uploader = async (file, prefix, id) => {
       public_id: filename,
       folder: "testing",
     });
-    return { secure_url: result.secure_url };
+    return result;
   } catch (err) {
     return { secure_url: null };
   }
