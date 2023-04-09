@@ -77,6 +77,13 @@ const addWishlist = async (req, res) => {
     });
   } catch (error) {
     console.log(error.message);
+    if (
+      error.message ===
+      `column "product_id" of relation "products" does not exist`
+    )
+      return res.status(404).json({
+        msg: "PRODUCT_NOT_EXIST",
+      });
     res.status(500).json({
       msg: "INTERNAL_SERVER_ERROR",
     });

@@ -75,7 +75,7 @@ const editProfile = (userId, body, dataImage) => {
 const getWishlists = (userId) => {
   return new Promise((resolve, reject) => {
     const sql =
-      "SELECT uw.product_id, p.stock, p.price FROM user_wishlists uw JOIN products p ON p.id = uw.product_id WHERE user_id = $1";
+      "SELECT uw.product_id, p.stock, p.price FROM user_wishlists uw JOIN products p ON p.id = uw.product_id WHERE uw.user_id = $1";
     db.query(sql, [userId], (err, result) => {
       if (err) return reject(err);
       resolve(result);
