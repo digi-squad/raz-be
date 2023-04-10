@@ -102,8 +102,17 @@ const getProduct = async (req, res) => {
     });
   } catch (err) {
     console.error(err);
+    if (
+      typeof err == "string" &&
+      err.match(/MIN_PRICE_MUST_LOWER_THAN_MAX_PRICE/)
+    ) {
+      console.log("hooh");
+      return res.status(500).json({
+        msg: "MIN_PRICE_MUST_LOWER_THAN_MAX_PRICE",
+      });
+    }
     res.status(500).json({
-      msg: "internal server error",
+      msg: "INTERNAL_SERVER_ERROR",
     });
   }
 };
@@ -167,7 +176,7 @@ const getProductDetail = async (req, res) => {
       rows: result.rows,
     });
   } catch (error) {
-    console.log(error);
+    console.log(error.message);
     res.status(500).json({
       msg: "internal server error",
     });
