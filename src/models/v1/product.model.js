@@ -65,12 +65,12 @@ const insertImageProduct = (client, id, secure_url) => {
 
 const getProduct = (params) => {
   return new Promise((resolve, reject) => {
-    let query = `SELECT p.id, p.name, p.description, p.stock, p.price, p.user_id,
+    let query = `SELECT p.id, p.name, p.description, p.stock, p.sold, p.price, p.user_id,
     c.name AS category_name, b.name AS brand_name,
     d.name AS condition_name, 
     array_agg(DISTINCT cl.name || ': ' || cl.hex_code) AS colors,
     array_agg(DISTINCT s.name) AS sizes,
-    ARRAY_AGG(i.url) AS image_urls FROM products p
+    ARRAY_AGG(DISTINCT i.url) AS image_urls FROM products p
     JOIN product_categories c ON p.category_id = c.id
     JOIN product_brands b ON p.brand_id = b.id
     JOIN product_conditions d ON p.condition_id = d.id
@@ -95,6 +95,11 @@ const getProduct = (params) => {
       const sizesQuery = parseInt(params.sizes);
       queryWhere.push("ps.size_id = $" + (queryParams.length + 1));
       queryParams.push(sizesQuery);
+    }
+    if (params.brand) {
+      const brandQuery = parseInt(params.brand);
+      queryWhere.push("p.brand_id = $" + (queryParams.length + 1));
+      queryParams.push(brandQuery);
     }
     if (params.colors) {
       const colorsQuery = parseInt(params.colors);
@@ -121,6 +126,31 @@ const getProduct = (params) => {
     }
     query += `
 GROUP BY p.id, p.user_id, c.name, b.name, d.name`;
+
+    if (params.sort) {
+      switch (params.sort) {
+        case "expensive":
+          query += ` ORDER BY p.price DESC`;
+          break;
+
+        case "cheap":
+          query += ` ORDER BY p.price ASC`;
+          break;
+
+        case "oldest":
+          query += ` ORDER BY p.created_at ASC`;
+          break;
+
+        case "bestselling":
+          query += ` ORDER BY p.sold DESC`;
+          break;
+
+        default:
+          query += ` ORDER BY p.created_at DESC`;
+          break;
+      }
+    }
+
     if (params.limit) {
       const limitQuery = parseInt(params.limit);
       query += ` LIMIT $${queryParams.length + 1}`;
@@ -167,6 +197,11 @@ const getMetadata = (params) => {
       const sizesQuery = parseInt(params.sizes);
       queryWhere.push("ps.size_id = $" + (queryParams.length + 1));
       queryParams.push(sizesQuery);
+    }
+    if (params.brand) {
+      const brandQuery = parseInt(params.brand);
+      queryWhere.push("p.brand_id = $" + (queryParams.length + 1));
+      queryParams.push(brandQuery);
     }
     if (params.colors) {
       const colorsQuery = parseInt(params.colors);
@@ -284,7 +319,7 @@ const getProductDetail = (id) => {
     product_conditions.name AS condition_name,
     array_agg(DISTINCT colors.name || ': ' || colors.hex_code) AS color,
     array_agg(DISTINCT sizes.name) AS sizes,
-    array_agg(product_images.url) AS image_urls
+    array_agg(DISTINCT product_images.url) AS image_urls
   FROM
     products
     JOIN product_categories ON products.category_id = product_categories.id
