@@ -126,10 +126,6 @@ const metaAllTransactions = (userId, q) => {
 
 const getDetailTransaction = (trId) => {
   return new Promise((resolve, reject) => {
-    const limit = parseInt(q.limit) || 5;
-    const page = parseInt(q.page) || 1;
-    const offset = (page - 1) * limit;
-
     const sql = `SELECT t.id AS transaction_id, t.created_at AS transaction_created_at,
     st.placeholder as status,
     json_agg(json_build_object(
