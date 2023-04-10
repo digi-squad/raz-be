@@ -62,7 +62,6 @@ const login = async (req, res) => {
       return res.status(401).json({
         msg: "WRONG_EMAIL_OR_PASSWORD",
       });
-    console.log(result.rows);
     const payload = {
       id: result.rows[0].id,
       role: result.rows[0].role_id,
