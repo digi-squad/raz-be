@@ -84,7 +84,8 @@ const getWishlists = (userId) => {
 };
 const addWishlist = (userId, productId) => {
   return new Promise((resolve, reject) => {
-    const sql = "INSERT INTO products (product_id, user_id) VALUES ($1, $2)";
+    const sql =
+      "INSERT INTO user_wishlists (product_id, user_id) VALUES ($1, $2)";
     db.query(sql, [productId, userId], (err, result) => {
       if (err) return reject(err);
       resolve(result);

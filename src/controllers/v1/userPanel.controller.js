@@ -84,10 +84,33 @@ const addWishlist = async (req, res) => {
       return res.status(404).json({
         msg: "PRODUCT_NOT_EXIST",
       });
+    if (
+      error.message ===
+      `duplicate key value violates unique constraint "user_wishlist_unique"`
+    )
+      return res.status(422).json({
+        msg: "THIS_PRODUCT_ALREADY_ON_WISHLIST",
+      });
     res.status(500).json({
       msg: "INTERNAL_SERVER_ERROR",
     });
   }
 };
 
-module.exports = { getProfile, editProfile, getWishlists, addWishlist };
+const deleteWishlist = async (req, res) => {
+  try {
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({
+      msg: "INTERNAL_SERVER_ERROR",
+    });
+  }
+};
+
+module.exports = {
+  getProfile,
+  editProfile,
+  getWishlists,
+  addWishlist,
+  deleteWishlist,
+};

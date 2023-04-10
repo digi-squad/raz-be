@@ -29,8 +29,8 @@ const check = (req, res, next) => {
 };
 
 // Add-ons authorization for only customer
-const customer = () => {
-  if (!req.authInfo || Number(req.authInfo.role) !== 1) {
+const customer = (req, res, next) => {
+  if (!req.authInfo || parseInt(req.authInfo.role) !== 1) {
     return res.status(403).json({
       msg: "FOR_CUSTOMER_ONLY",
     });
@@ -39,8 +39,8 @@ const customer = () => {
 };
 
 // Add-ons authorization for only customer
-const seller = () => {
-  if (!req.authInfo || Number(req.authInfo.role) !== 2) {
+const seller = (req, res, next) => {
+  if (!req.authInfo || parseInt(req.authInfo.role) !== 2) {
     return res.status(403).json({
       msg: "FOR_SELLER_ONLY",
     });

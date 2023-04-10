@@ -26,9 +26,9 @@ const cloudUpload = async (req, res, next) => {
 const insertProduct = async (req, res) => {
   try {
     const { body, uploadResults } = req;
-    const { id } = await productModels.insertProduct(body);
+    const { id } = await productModels.insertProduct(body, req.authInfo.id);
 
-    await productModels.insertColorProduct(id, body);
+    // await productModels.insertColorProduct(id, body);
 
     const images = uploadResults.map((result) => result.secure_url);
 
@@ -37,14 +37,14 @@ const insertProduct = async (req, res) => {
     }
 
     res.status(200).json({
-      msg: "Insert Product Berhasil",
+      msg: "INSERT_PRODUCT_SUCCESS",
       id,
       images,
     });
   } catch (error) {
     console.log(error);
     res.status(500).json({
-      msg: "Internal Server Error",
+      msg: "INTERNAL_SERVER_ERROR",
     });
   }
 };
