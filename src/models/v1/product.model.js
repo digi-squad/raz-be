@@ -228,18 +228,6 @@ const getMetadata = (params) => {
     }
     query += `
 GROUP BY p.id, p.user_id, c.name, b.name, d.name`;
-    if (params.limit) {
-      const limitQuery = parseInt(params.limit);
-      query += ` LIMIT $${queryParams.length + 1}`;
-      queryParams.push(limitQuery);
-    }
-
-    if (params.page) {
-      const pageQuery =
-        (parseInt(params.page) - 1) * parseInt(params.limit) || 0;
-      query += ` OFFSET $${queryParams.length + 1}`;
-      queryParams.push(pageQuery);
-    }
 
     query += `;`;
 
@@ -319,12 +307,15 @@ const getProductDetail = (id) => {
     product_conditions.name AS condition_name,
     array_agg(DISTINCT colors.name || ': ' || colors.hex_code) AS color,
     array_agg(DISTINCT sizes.name) AS sizes,
-    array_agg(DISTINCT product_images.url) AS image_urls
+    array_agg(DISTINCT product_images.url) AS image_urls,
+    users.store_name,
+    users.store_desc
   FROM
     products
     JOIN product_categories ON products.category_id = product_categories.id
     JOIN product_brands ON products.brand_id = product_brands.id
     JOIN product_conditions ON products.condition_id = product_conditions.id
+    JOIN users ON products.user_id = users.id
     LEFT JOIN product_colors ON products.id = product_colors.product_id
     LEFT JOIN colors ON product_colors.color_id = colors.id
     LEFT JOIN product_sizes ON products.id = product_sizes.product_id
@@ -340,7 +331,9 @@ const getProductDetail = (id) => {
     products.price,
     product_categories.name,
     product_brands.name,
-    product_conditions.name`;
+    product_conditions.name,
+    users.store_name,
+    users.store_desc`;
     db.query(sql, [id], (err, result) => {
       if (err) {
         reject(err);
