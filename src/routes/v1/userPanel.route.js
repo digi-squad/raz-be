@@ -16,5 +16,10 @@ userPanelRouter.patch(
 // wishlists
 userPanelRouter.get("/wishlist", auth.check, userPanelController.getWishlists);
 userPanelRouter.post("/wishlist", auth.check, userPanelController.addWishlist);
+userPanelRouter.delete(
+  "/wishlist/:id",
+  auth.check,
+  userPanelController.deleteWishlist
+);
 
 module.exports = userPanelRouter;

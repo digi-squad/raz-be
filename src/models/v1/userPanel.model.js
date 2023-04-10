@@ -74,14 +74,27 @@ const editProfile = (userId, body, dataImage) => {
 
 const getWishlists = (userId) => {
   return new Promise((resolve, reject) => {
-    const sql =
-      "SELECT uw.product_id, p.stock, p.price FROM user_wishlists uw JOIN products p ON p.id = uw.product_id WHERE uw.user_id = $1";
+    const sql = `SELECT uw.id ,uw.product_id, p.name, pi.url as img_url,  p.stock, p.price FROM user_wishlists uw 
+      JOIN products p ON p.id = uw.product_id 
+      JOIN product_images pi ON p.id = pi.product_id 
+      WHERE uw.user_id = $1`;
     db.query(sql, [userId], (err, result) => {
       if (err) return reject(err);
       resolve(result);
     });
   });
 };
+
+const getWishlistById = (wId) => {
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT * FROM user_wishlists WHERE id = $1`;
+    db.query(sql, [wId], (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
+  });
+};
+
 const addWishlist = (userId, productId) => {
   return new Promise((resolve, reject) => {
     const sql =
@@ -93,4 +106,21 @@ const addWishlist = (userId, productId) => {
   });
 };
 
-module.exports = { getProfile, editProfile, getWishlists, addWishlist };
+const deleteWishlist = (wId) => {
+  return new Promise((resolve, reject) => {
+    const sql = "DELETE FROM user_wishlists WHERE id = $1";
+    db.query(sql, [wId], (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
+  });
+};
+
+module.exports = {
+  getProfile,
+  editProfile,
+  getWishlists,
+  getWishlistById,
+  addWishlist,
+  deleteWishlist,
+};
