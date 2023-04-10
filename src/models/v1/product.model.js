@@ -68,13 +68,17 @@ const getProduct = (params) => {
     let query = `SELECT p.id, p.name, p.description, p.stock, p.price, p.user_id,
     c.name AS category_name, b.name AS brand_name,
     d.name AS condition_name, 
-    ARRAY_AGG(pc.name || ': ' || pc.hex_code) AS color,
+    array_agg(DISTINCT cl.name || ': ' || cl.hex_code) AS colors,
+    array_agg(DISTINCT s.name) AS sizes,
     ARRAY_AGG(i.url) AS image_urls FROM products p
-JOIN product_categories c ON p.category_id = c.id
-JOIN product_brands b ON p.brand_id = b.id
-JOIN product_conditions d ON p.condition_id = d.id
-LEFT JOIN product_colors pc ON p.id = pc.product_id
-LEFT JOIN product_images i ON p.id = i.product_id`;
+    JOIN product_categories c ON p.category_id = c.id
+    JOIN product_brands b ON p.brand_id = b.id
+    JOIN product_conditions d ON p.condition_id = d.id
+    LEFT JOIN product_colors pcl ON p.id = pcl.product_id
+    LEFT JOIN colors cl ON pcl.color_id = cl.id
+    LEFT JOIN product_sizes ps ON p.id = ps.product_id
+    LEFT JOIN sizes s ON ps.size_id = s.id
+    LEFT JOIN product_images i ON p.id = i.product_id`;
     let queryParams = [];
     let queryWhere = [];
     if (params.search) {
@@ -89,19 +93,19 @@ LEFT JOIN product_images i ON p.id = i.product_id`;
     }
     if (params.sizes) {
       const sizesQuery = parseInt(params.sizes);
-      queryWhere.push("s.id = $" + (queryParams.length + 1));
+      queryWhere.push("ps.size_id = $" + (queryParams.length + 1));
       queryParams.push(sizesQuery);
     }
     if (params.colors) {
       const colorsQuery = parseInt(params.colors);
-      queryWhere.push("pc.product_id = $" + (queryParams.length + 1));
+      queryWhere.push("pcl.color_id = $" + (queryParams.length + 1));
       queryParams.push(colorsQuery);
     }
     if (params.min_price && params.max_price) {
       const minPriceQuery = parseInt(params.min_price);
       const maxPriceQuery = parseInt(params.max_price);
       if (minPriceQuery >= maxPriceQuery) {
-        reject("Min price should be lower than max price");
+        reject("MIN_PRICE_MUST_LOWER_THAN_MAX_PRICE");
       }
       queryWhere.push(
         "p.price >= $" +
@@ -124,7 +128,10 @@ GROUP BY p.id, p.user_id, c.name, b.name, d.name`;
     }
     db.query(query, queryParams)
       .then((result) => resolve(result))
-      .catch((error) => reject(error), console.log(query));
+      .catch(
+        (error) => reject(error)
+        // console.log(query)
+      );
   });
 };
 
@@ -133,12 +140,16 @@ const getMetadata = (params) => {
     let query = `SELECT p.id, p.name, p.description, p.stock, p.price, p.user_id,
     c.name AS category_name, b.name AS brand_name,
     d.name AS condition_name, 
-    ARRAY_AGG(pc.name || ': ' || pc.hex_code) AS color,
+    array_agg(DISTINCT cl.name || ': ' || cl.hex_code) AS colors,
+    array_agg(DISTINCT s.name) AS sizes,
     ARRAY_AGG(i.url) AS image_urls FROM products p
     JOIN product_categories c ON p.category_id = c.id
     JOIN product_brands b ON p.brand_id = b.id
     JOIN product_conditions d ON p.condition_id = d.id
-    LEFT JOIN product_colors pc ON p.id = pc.product_id
+    LEFT JOIN product_colors pcl ON p.id = pcl.product_id
+    LEFT JOIN colors cl ON pcl.color_id = cl.id
+    LEFT JOIN product_sizes ps ON p.id = ps.product_id
+    LEFT JOIN sizes s ON ps.size_id = s.id
     LEFT JOIN product_images i ON p.id = i.product_id`;
     let queryParams = [];
     let queryWhere = [];
@@ -154,19 +165,19 @@ const getMetadata = (params) => {
     }
     if (params.sizes) {
       const sizesQuery = parseInt(params.sizes);
-      queryWhere.push("s.id = $" + (queryParams.length + 1));
+      queryWhere.push("ps.size_id = $" + (queryParams.length + 1));
       queryParams.push(sizesQuery);
     }
     if (params.colors) {
       const colorsQuery = parseInt(params.colors);
-      queryWhere.push("pc.product_id = $" + (queryParams.length + 1));
+      queryWhere.push("pcl.color_id = $" + (queryParams.length + 1));
       queryParams.push(colorsQuery);
     }
     if (params.min_price && params.max_price) {
       const minPriceQuery = parseInt(params.min_price);
       const maxPriceQuery = parseInt(params.max_price);
       if (minPriceQuery >= maxPriceQuery) {
-        reject("Min price should be lower than max price");
+        reject("MIN_PRICE_MUST_LOWER_THAN_MAX_PRICE");
       }
       queryWhere.push(
         "p.price >= $" +
@@ -180,7 +191,6 @@ const getMetadata = (params) => {
     if (queryWhere.length > 0) {
       query += " WHERE " + queryWhere.join(" AND ");
     }
-
     query += `
 GROUP BY p.id, p.user_id, c.name, b.name, d.name`;
     if (params.limit) {
@@ -200,7 +210,7 @@ GROUP BY p.id, p.user_id, c.name, b.name, d.name`;
 
     db.query(query, queryParams, (error, result) => {
       if (error) {
-        reject(error);
+        reject(error.message);
         return;
       }
       const totalData = parseInt(result.rows.length);
@@ -272,7 +282,8 @@ const getProductDetail = (id) => {
     product_categories.name AS category_name,
     product_brands.name AS brand_name,
     product_conditions.name AS condition_name,
-    array_agg(DISTINCT product_colors.name || ': ' || product_colors.hex_code) AS color,
+    array_agg(DISTINCT colors.name || ': ' || colors.hex_code) AS color,
+    array_agg(DISTINCT sizes.name) AS sizes,
     array_agg(DISTINCT product_images.url) AS image_urls
   FROM
     products
@@ -280,6 +291,9 @@ const getProductDetail = (id) => {
     JOIN product_brands ON products.brand_id = product_brands.id
     JOIN product_conditions ON products.condition_id = product_conditions.id
     LEFT JOIN product_colors ON products.id = product_colors.product_id
+    LEFT JOIN colors ON product_colors.color_id = colors.id
+    LEFT JOIN product_sizes ON products.id = product_sizes.product_id
+    LEFT JOIN sizes ON product_sizes.size_id = sizes.id
     LEFT JOIN product_images ON products.id = product_images.product_id
   WHERE
     products.id = $1
@@ -291,7 +305,8 @@ const getProductDetail = (id) => {
     products.price,
     product_categories.name,
     product_brands.name,
-    product_conditions.name;`;
+    product_conditions.name,
+    colors.name;`;
     db.query(sql, [id], (err, result) => {
       if (err) {
         reject(err);
