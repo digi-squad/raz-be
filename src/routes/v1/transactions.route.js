@@ -17,4 +17,12 @@ transactionRoute.post(
   auth.customer,
   transactionController.addTransaction
 );
+
+transactionRoute.get(
+  "/:id",
+  auth.check,
+  auth.customer,
+  transactionController.detailTransaction
+);
+
 module.exports = transactionRoute;

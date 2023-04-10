@@ -4,9 +4,12 @@ const trModel = require("../../models/v1/transactions.model");
 const listTransactions = async (req, res) => {
   try {
     const { id } = req.authInfo;
-    const result = await trModel.getAllTransactions(id);
+    const result = await trModel.getAllTransactions(id, req.query);
+    const meta = await trModel.metaAllTransactions(id, req.query);
+
     res.status(200).json({
       data: result.rows,
+      meta,
     });
   } catch (error) {
     console.log(error.message);
@@ -46,7 +49,25 @@ const addTransaction = async (req, res) => {
   }
 };
 
+const detailTransaction = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await trModel.getDetailTransaction(id);
+    if (result.rows.length < 1)
+      res.status(200).json({
+        msg: "DATA_NOT_FOUND",
+      });
+    res.status(200).json({ data: result.rows });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({
+      msg: "INTERNAL_SERVER_ERROR",
+    });
+  }
+};
+
 module.exports = {
   addTransaction,
   listTransactions,
+  detailTransaction,
 };
