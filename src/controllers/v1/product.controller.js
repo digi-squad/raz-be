@@ -1,3 +1,4 @@
+const db = require("../../configs/pg");
 const productModels = require("../../models/v1/product.model");
 
 const { uploader } = require("../../utils/cloudinary");
@@ -25,23 +26,58 @@ const cloudUpload = async (req, res, next) => {
 
 const insertProduct = async (req, res) => {
   try {
-    const { body, uploadResults } = req;
-    const { id } = await productModels.insertProduct(body, req.authInfo.id);
+    const client = await db.connect();
+    client.query("BEGIN");
 
-    // await productModels.insertColorProduct(id, body);
+    const { body, uploadResults } = req;
+    const { id } = await productModels.insertProduct(
+      client,
+      body,
+      req.authInfo.id
+    );
+
+    let colors = req.body.color;
+    if (req.body.color) {
+      if (typeof req.body.color != "array") {
+        colors = req.body.color.split(","); // split string into array using comma as delimiter
+        colors = colors.map(function (item) {
+          return item.trim(); // remove whitespace from each item in array
+        });
+      }
+
+      colors.map(async (item) => {
+        await productModels.insertColorProduct(client, id, item);
+      });
+    }
+
+    let sizes = req.body.size;
+    if (req.body.size) {
+      if (!Array.isArray(sizes)) {
+        sizes = req.body.size.split(","); // split string into array using comma as delimiter
+        sizes = sizes.map(function (item) {
+          return item.trim(); // remove whitespace from each item in array
+        });
+      }
+
+      sizes.map(async (item) => {
+        await productModels.insertSizeProduct(client, id, item);
+      });
+    }
 
     const images = uploadResults.map((result) => result.secure_url);
 
     for (let i = 0; i < images.length; i++) {
-      await productModels.insertImageProduct(id, images[i]);
+      await productModels.insertImageProduct(client, id, images[i]);
     }
 
+    client.query("COMMIT");
     res.status(200).json({
       msg: "INSERT_PRODUCT_SUCCESS",
       id,
       images,
     });
   } catch (error) {
+    client.query("ROLLBACK");
     console.log(error);
     res.status(500).json({
       msg: "INTERNAL_SERVER_ERROR",
@@ -153,6 +189,7 @@ const deleteProduct = async (req, res) => {
     });
   }
 };
+
 module.exports = {
   insertProduct,
   cloudUpload,

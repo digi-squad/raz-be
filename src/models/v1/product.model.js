@@ -1,10 +1,10 @@
 const db = require("../../configs/pg");
 
-const insertProduct = (body, user_id) => {
+const insertProduct = (client, body, user_id) => {
   return new Promise((resolve, reject) => {
     const sql =
       "insert into products (name,description,stock,price,user_id,category_id,brand_id,condition_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) returning id";
-    db.query(
+    client.query(
       sql,
       [
         body.name,
@@ -26,11 +26,11 @@ const insertProduct = (body, user_id) => {
   });
 };
 
-const insertColorProduct = (id, body) => {
+const insertColorProduct = (client, productId, colorId) => {
   return new Promise((resolve, reject) => {
     const sql =
-      "insert into product_colors (product_id,name,hex_code) values ($1,$2,$3)";
-    db.query(sql, [id, body.color, body.hex], (err, result) => {
+      "insert into product_colors (product_id,color_id) values ($1,$2)";
+    client.query(sql, [productId, colorId], (err, result) => {
       if (err) {
         return reject(err);
       }
@@ -39,10 +39,22 @@ const insertColorProduct = (id, body) => {
   });
 };
 
-const insertImageProduct = (id, secure_url) => {
+const insertSizeProduct = (client, productId, sizeId) => {
+  return new Promise((resolve, reject) => {
+    const sql = "insert into product_sizes (product_id,size_id) values ($1,$2)";
+    client.query(sql, [productId, sizeId], (err, result) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(result);
+    });
+  });
+};
+
+const insertImageProduct = (client, id, secure_url) => {
   return new Promise((resolve, reject) => {
     const sql = "insert into product_images (product_id,url) values ($1,$2)";
-    db.query(sql, [id, secure_url], (err, result) => {
+    client.query(sql, [id, secure_url], (err, result) => {
       if (err) {
         return reject(err);
       }
@@ -328,6 +340,7 @@ module.exports = {
   insertProduct,
   insertImageProduct,
   insertColorProduct,
+  insertSizeProduct,
   getProduct,
   getMetadata,
   updateProduct,
