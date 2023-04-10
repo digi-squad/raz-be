@@ -1,22 +1,20 @@
 const db = require("../../configs/pg");
 
-const insertProduct = (body, user_id) => {
+const insertProduct = (client, body, user_id) => {
   return new Promise((resolve, reject) => {
     const sql =
-      "insert into products (name,description,sold,stock,price,user_id,category_id,brand_id,condition_id,size_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) returning id";
-    db.query(
+      "insert into products (name,description,stock,price,user_id,category_id,brand_id,condition_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) returning id";
+    client.query(
       sql,
       [
         body.name,
         body.desc,
-        body.sold,
         body.stock,
         body.price,
         user_id,
         body.category,
         body.brand,
         body.condition,
-        body.size,
       ],
       (err, result) => {
         if (err) {
@@ -28,11 +26,11 @@ const insertProduct = (body, user_id) => {
   });
 };
 
-const insertColorProduct = (id, body) => {
+const insertColorProduct = (client, productId, colorId) => {
   return new Promise((resolve, reject) => {
     const sql =
-      "insert into product_colors (product_id,name,hex_code) values ($1,$2,$3)";
-    db.query(sql, [id, body.color, body.hex], (err, result) => {
+      "insert into product_colors (product_id,color_id) values ($1,$2)";
+    client.query(sql, [productId, colorId], (err, result) => {
       if (err) {
         return reject(err);
       }
@@ -41,10 +39,22 @@ const insertColorProduct = (id, body) => {
   });
 };
 
-const insertImageProduct = (id, secure_url) => {
+const insertSizeProduct = (client, productId, sizeId) => {
+  return new Promise((resolve, reject) => {
+    const sql = "insert into product_sizes (product_id,size_id) values ($1,$2)";
+    client.query(sql, [productId, sizeId], (err, result) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(result);
+    });
+  });
+};
+
+const insertImageProduct = (client, id, secure_url) => {
   return new Promise((resolve, reject) => {
     const sql = "insert into product_images (product_id,url) values ($1,$2)";
-    db.query(sql, [id, secure_url], (err, result) => {
+    client.query(sql, [id, secure_url], (err, result) => {
       if (err) {
         return reject(err);
       }
@@ -55,60 +65,36 @@ const insertImageProduct = (id, secure_url) => {
 
 const getProduct = (params) => {
   return new Promise((resolve, reject) => {
-    let query = `SELECT
-            products.id,
-            products.name,
-            products.description,
-            products.stock,
-            products.price,
-            product_categories.name AS category_name,
-            product_brands.name AS brand_name,
-            product_conditions.name AS condition_name,
-            product_sizes.name AS size_name,
-            array_agg(DISTINCT product_colors.name || ': ' || product_colors.hex_code) AS color,
-            array_agg(DISTINCT product_images.url) AS image_urls
-          FROM
-            products
-            JOIN product_categories ON products.category_id = product_categories.id
-            JOIN product_brands ON products.brand_id = product_brands.id
-            JOIN product_conditions ON products.condition_id = product_conditions.id
-            JOIN product_sizes ON products.size_id = product_sizes.id
-            LEFT JOIN product_colors ON products.id = product_colors.product_id
-            LEFT JOIN product_images ON products.id = product_images.product_id`;
+    let query = `SELECT p.id, p.name, p.description, p.stock, p.price, p.user_id,
+    c.name AS category_name, b.name AS brand_name,
+    d.name AS condition_name, 
+    ARRAY_AGG(pc.name || ': ' || pc.hex_code) AS color,
+    ARRAY_AGG(i.url) AS image_urls FROM products p
+JOIN product_categories c ON p.category_id = c.id
+JOIN product_brands b ON p.brand_id = b.id
+JOIN product_conditions d ON p.condition_id = d.id
+LEFT JOIN product_colors pc ON p.id = pc.product_id
+LEFT JOIN product_images i ON p.id = i.product_id`;
     let queryParams = [];
-    // search filter
+    let queryWhere = [];
     if (params.search) {
       const searchQuery = `%${params.search}%`;
-      query += " WHERE products.name ILIKE $1";
+      queryWhere.push("p.name ILIKE $1");
       queryParams.push(searchQuery);
     }
-    // category filter
     if (params.category) {
       const categoryQuery = parseInt(params.category);
-      if (queryParams.length === 0) {
-        query += " WHERE product_categories.id = $1";
-      } else {
-        query += " AND product_categories.id = $2";
-      }
+      queryWhere.push("c.id = $" + (queryParams.length + 1));
       queryParams.push(categoryQuery);
     }
-    // size filter
     if (params.sizes) {
       const sizesQuery = parseInt(params.sizes);
-      if (queryParams.length === 0) {
-        query += " WHERE product_sizes.id = $1";
-      } else {
-        query += " AND product_sizes.id = $2";
-      }
+      queryWhere.push("s.id = $" + (queryParams.length + 1));
       queryParams.push(sizesQuery);
     }
     if (params.colors) {
       const colorsQuery = parseInt(params.colors);
-      if (queryParams.length === 0) {
-        query += " WHERE product_colors.product_id = $1";
-      } else {
-        query += " AND product_colors.product_id = $2";
-      }
+      queryWhere.push("pc.product_id = $" + (queryParams.length + 1));
       queryParams.push(colorsQuery);
     }
     if (params.min_price && params.max_price) {
@@ -117,21 +103,20 @@ const getProduct = (params) => {
       if (minPriceQuery >= maxPriceQuery) {
         reject("Min price should be lower than max price");
       }
-      if (queryParams.length === 0) {
-        query += " WHERE products.price >= $1 AND products.price <= $2";
-      } else {
-        query += " AND products.price >= $3 AND products.price <= $4";
-      }
+      queryWhere.push(
+        "p.price >= $" +
+          (queryParams.length + 1) +
+          " AND p.price <= $" +
+          (queryParams.length + 2)
+      );
       queryParams.push(minPriceQuery);
       queryParams.push(maxPriceQuery);
     }
+    if (queryWhere.length > 0) {
+      query += " WHERE " + queryWhere.join(" AND ");
+    }
     query += `
-    GROUP BY
-            products.id,
-            product_categories.name,
-            product_brands.name,
-            product_conditions.name,
-            product_sizes.name`;
+GROUP BY p.id, p.user_id, c.name, b.name, d.name`;
     if (params.limit) {
       const limitQuery = parseInt(params.limit);
       query += ` LIMIT $${queryParams.length + 1}`;
@@ -145,102 +130,80 @@ const getProduct = (params) => {
 
 const getMetadata = (params) => {
   return new Promise((resolve, reject) => {
-    let query = `SELECT
-      products.id,
-      products.name,
-      products.description,
-      products.stock,
-      products.price,
-      product_categories.name AS category_name,
-      product_brands.name AS brand_name,
-      product_conditions.name AS condition_name,
-      product_sizes.name AS size_name,
-      array_agg(DISTINCT product_colors.name || ': ' || product_colors.hex_code) AS color,
-      array_agg(DISTINCT product_images.url) AS image_urls,
-      COUNT(products.id) OVER() AS total_data
-    FROM
-      products
-      JOIN product_categories ON products.category_id = product_categories.id
-      JOIN product_brands ON products.brand_id = product_brands.id
-      JOIN product_conditions ON products.condition_id = product_conditions.id
-      JOIN product_sizes ON products.size_id = product_sizes.id
-      LEFT JOIN product_colors ON products.id = product_colors.product_id
-      LEFT JOIN product_images ON products.id = product_images.product_id`;
-
+    let query = `SELECT p.id, p.name, p.description, p.stock, p.price, p.user_id,
+    c.name AS category_name, b.name AS brand_name,
+    d.name AS condition_name, 
+    ARRAY_AGG(pc.name || ': ' || pc.hex_code) AS color,
+    ARRAY_AGG(i.url) AS image_urls FROM products p
+    JOIN product_categories c ON p.category_id = c.id
+    JOIN product_brands b ON p.brand_id = b.id
+    JOIN product_conditions d ON p.condition_id = d.id
+    LEFT JOIN product_colors pc ON p.id = pc.product_id
+    LEFT JOIN product_images i ON p.id = i.product_id`;
     let queryParams = [];
-
-    // search filter
+    let queryWhere = [];
     if (params.search) {
       const searchQuery = `%${params.search}%`;
-      query += " WHERE products.name ILIKE $1";
+      queryWhere.push("p.name ILIKE $1");
       queryParams.push(searchQuery);
     }
-
-    // category filter
     if (params.category) {
       const categoryQuery = parseInt(params.category);
-      if (queryParams.length === 0) {
-        query += " WHERE products.category_id = $1";
-      } else {
-        query += " AND products.category_id = $2";
-      }
+      queryWhere.push("c.id = $" + (queryParams.length + 1));
       queryParams.push(categoryQuery);
     }
-
-    // size filter
     if (params.sizes) {
       const sizesQuery = parseInt(params.sizes);
-      if (queryParams.length === 0) {
-        query += " WHERE products.size_id = $1";
-      } else {
-        query += " AND products.size.id = $2";
-      }
+      queryWhere.push("s.id = $" + (queryParams.length + 1));
       queryParams.push(sizesQuery);
     }
-
-    // color filter
     if (params.colors) {
       const colorsQuery = parseInt(params.colors);
-      if (queryParams.length === 0) {
-        query += " WHERE product_colors.product_id = $1";
-      } else {
-        query += " AND product_colors.product_id = $2";
-      }
+      queryWhere.push("pc.product_id = $" + (queryParams.length + 1));
       queryParams.push(colorsQuery);
     }
-
-    // price filter
     if (params.min_price && params.max_price) {
       const minPriceQuery = parseInt(params.min_price);
       const maxPriceQuery = parseInt(params.max_price);
       if (minPriceQuery >= maxPriceQuery) {
         reject("Min price should be lower than max price");
       }
-      if (queryParams.length === 0) {
-        query += " WHERE products.price >= $1 AND products.price <= $2";
-      } else {
-        query += " AND products.price >= $3 AND products.price <= $4";
-      }
+      queryWhere.push(
+        "p.price >= $" +
+          (queryParams.length + 1) +
+          " AND p.price <= $" +
+          (queryParams.length + 2)
+      );
       queryParams.push(minPriceQuery);
       queryParams.push(maxPriceQuery);
     }
-    query += ` GROUP BY
-              products.id,
-              product_categories.name,
-              product_brands.name,
-              product_conditions.name,
-              product_sizes.name`;
+    if (queryWhere.length > 0) {
+      query += " WHERE " + queryWhere.join(" AND ");
+    }
+
+    query += `
+GROUP BY p.id, p.user_id, c.name, b.name, d.name`;
     if (params.limit) {
       const limitQuery = parseInt(params.limit);
       query += ` LIMIT $${queryParams.length + 1}`;
       queryParams.push(limitQuery);
     }
+
+    if (params.page) {
+      const pageQuery =
+        (parseInt(params.page) - 1) * parseInt(params.limit) || 0;
+      query += ` OFFSET $${queryParams.length + 1}`;
+      queryParams.push(pageQuery);
+    }
+
+    query += `;`;
+
     db.query(query, queryParams, (error, result) => {
       if (error) {
         reject(error);
         return;
       }
-      const totalData = parseInt(result.rows[0].total_data);
+      const totalData = parseInt(result.rows.length);
       const page = parseInt(params.page) || 1;
       const limit = parseInt(params.limit) || 10;
       const totalPage = Math.ceil(totalData / limit);
@@ -309,7 +272,6 @@ const getProductDetail = (id) => {
     product_categories.name AS category_name,
     product_brands.name AS brand_name,
     product_conditions.name AS condition_name,
-    product_sizes.name AS size_name,
     array_agg(DISTINCT product_colors.name || ': ' || product_colors.hex_code) AS color,
     array_agg(DISTINCT product_images.url) AS image_urls
   FROM
@@ -317,7 +279,6 @@ const getProductDetail = (id) => {
     JOIN product_categories ON products.category_id = product_categories.id
     JOIN product_brands ON products.brand_id = product_brands.id
     JOIN product_conditions ON products.condition_id = product_conditions.id
-    JOIN product_sizes ON products.size_id = product_sizes.id
     LEFT JOIN product_colors ON products.id = product_colors.product_id
     LEFT JOIN product_images ON products.id = product_images.product_id
   WHERE
@@ -330,8 +291,7 @@ const getProductDetail = (id) => {
     products.price,
     product_categories.name,
     product_brands.name,
-    product_conditions.name,
-    product_sizes.name;`;
+    product_conditions.name;`;
     db.query(sql, [id], (err, result) => {
       if (err) {
         reject(err);
@@ -380,6 +340,7 @@ module.exports = {
   insertProduct,
   insertImageProduct,
   insertColorProduct,
+  insertSizeProduct,
   getProduct,
   getMetadata,
   updateProduct,

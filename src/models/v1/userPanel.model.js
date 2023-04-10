@@ -6,7 +6,7 @@ const getProfile = (userId, role) => {
     if (role === 2) {
       store = ",store_name, store_desc";
     }
-    const sql = `SELECT id, email, img ${store} FROM users WHERE id = $1`;
+    const sql = `SELECT id, email, name, img ${store} FROM users WHERE id = $1`;
     db.query(sql, [userId], (err, result) => {
       if (err) return reject(err);
       resolve(result);
@@ -14,12 +14,17 @@ const getProfile = (userId, role) => {
   });
 };
 
-const editProfile = (userId, body) => {
+const editProfile = (userId, body, dataImage) => {
   return new Promise((resolve, reject) => {
-    const { email, name, img, store_name, store_desc, gender } = body;
-    let input;
+    const { email, name, store_name, store_desc, gender } = body;
+    let input = "";
     let count = 0;
     const values = [];
+    let url = "";
+    if (dataImage) {
+      url = dataImage.secure_url;
+    }
+
     if (email) {
       count += 1;
       input += `email = ${count}`;
@@ -28,37 +33,38 @@ const editProfile = (userId, body) => {
 
     if (name) {
       count += 1;
-      input += (count > 0 ? ", " : "") + `name = ${count}`;
+      input += (count > 1 ? ", " : "") + `name = $${count}`;
       values.push(name);
     }
 
-    if (img) {
+    if (url && url !== "") {
       count += 1;
-      input += (count > 0 ? ", " : "") + `img = ${count}`;
-      values.push(img);
+      input += (count > 1 ? ", " : "") + `img = $${count}`;
+      values.push(url);
     }
 
     if (store_name) {
       count += 1;
-      input += (count > 0 ? ", " : "") + `store_name = ${count}`;
+      input += (count > 1 ? ", " : "") + `store_name = $${count}`;
       values.push(store_name);
     }
 
     if (store_desc) {
       count += 1;
-      input += (count > 0 ? ", " : "") + `store_desc = ${count}`;
+      input += (count > 1 ? ", " : "") + `store_desc = $${count}`;
       values.push(store_desc);
     }
 
     if (gender) {
       count += 1;
-      input += (count > 0 ? ", " : "") + `gender_id = ${count}`;
+      input += (count > 1 ? ", " : "") + `gender_id = $${count}`;
       values.push(gender);
     }
 
     values.push(userId);
 
-    const sql = `UPDATE users SET ${input} WHERE id = ${count + 1}`;
+    const sql = `UPDATE users SET ${input} WHERE id = $${count + 1}`;
+
     db.query(sql, values, (err, result) => {
       if (err) return reject(err);
       resolve(result);
@@ -69,7 +75,7 @@ const editProfile = (userId, body) => {
 const getWishlists = (userId) => {
   return new Promise((resolve, reject) => {
     const sql =
-      "SELECT uw.product_id, p.stock, p.price FROM user_wishlists uw JOIN products p ON p.id = uw.product_id WHERE user_id = $1";
+      "SELECT uw.product_id, p.stock, p.price FROM user_wishlists uw JOIN products p ON p.id = uw.product_id WHERE uw.user_id = $1";
     db.query(sql, [userId], (err, result) => {
       if (err) return reject(err);
       resolve(result);
@@ -78,7 +84,8 @@ const getWishlists = (userId) => {
 };
 const addWishlist = (userId, productId) => {
   return new Promise((resolve, reject) => {
-    const sql = "INSERT INTO products (product_id, user_id) VALUES ($1, $2)";
+    const sql =
+      "INSERT INTO user_wishlists (product_id, user_id) VALUES ($1, $2)";
     db.query(sql, [productId, userId], (err, result) => {
       if (err) return reject(err);
       resolve(result);
