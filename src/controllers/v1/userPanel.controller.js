@@ -99,6 +99,16 @@ const addWishlist = async (req, res) => {
 
 const deleteWishlist = async (req, res) => {
   try {
+    const { id } = req.authInfo;
+    const result = await userPanelModel.getWishlistById(req.params.id);
+    if (result.rows.length < 1 || result.rows[0].user_id !== id)
+      return res.status(404).json({
+        msg: "WISHLIST_ID_NOT_FOUND",
+      });
+    await userPanelModel.deleteWishlist(req.params.id);
+    res.status(200).json({
+      msg: "WISHLIST_ID_DELETED",
+    });
   } catch (error) {
     console.log(error.message);
     res.status(500).json({

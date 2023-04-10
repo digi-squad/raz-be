@@ -1,5 +1,6 @@
 const db = require("../../configs/pg");
 const productModels = require("../../models/v1/product.model");
+const crypto = require("crypto");
 
 const { uploader } = require("../../utils/cloudinary");
 
@@ -9,8 +10,12 @@ const cloudUpload = async (req, res, next) => {
     if (!files || !files.length)
       return res.status(200).json({ msg: "No File Uploaded" });
     const prefix = "product";
+
     const results = await Promise.all(
-      files.map(async (file, i) => await uploader(file, prefix, i))
+      files.map(async (file, i) => {
+        i = i + 1;
+        return await uploader(file, prefix, i);
+      })
     );
     const success = results.filter((result) => result.secure_url);
     const errors = results.filter((result) => !result.secure_url);

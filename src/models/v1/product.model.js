@@ -284,7 +284,7 @@ const getProductDetail = (id) => {
     product_conditions.name AS condition_name,
     array_agg(DISTINCT colors.name || ': ' || colors.hex_code) AS color,
     array_agg(DISTINCT sizes.name) AS sizes,
-    array_agg(DISTINCT product_images.url) AS image_urls
+    array_agg(product_images.url) AS image_urls
   FROM
     products
     JOIN product_categories ON products.category_id = product_categories.id
@@ -305,8 +305,7 @@ const getProductDetail = (id) => {
     products.price,
     product_categories.name,
     product_brands.name,
-    product_conditions.name,
-    colors.name;`;
+    product_conditions.name`;
     db.query(sql, [id], (err, result) => {
       if (err) {
         reject(err);
@@ -351,6 +350,7 @@ const deleteProductColor = (id) => {
     });
   });
 };
+
 module.exports = {
   insertProduct,
   insertImageProduct,
