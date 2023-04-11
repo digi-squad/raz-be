@@ -1,7 +1,8 @@
 const jwt = require("jsonwebtoken");
 const { jwtSecretKey } = require("../configs/env");
+const tokenModel = require("../models/v1/token.model");
 
-const check = (req, res, next) => {
+const check = async (req, res, next) => {
   // get from header
   const authHeader = req.header("Authorization");
   if (!authHeader)
@@ -12,8 +13,21 @@ const check = (req, res, next) => {
   // throw away "Bearer" word
   const token = authHeader.split(" ")[1];
 
+  const tokenVerify = await tokenModel.get(token);
+  if (!tokenVerify) {
+    return res.status(403).json({
+      msg: "JWT_REJECTED",
+    });
+  }
+
   // verify
   jwt.verify(token, jwtSecretKey, (err, payload) => {
+    if (err && err.message === "jwt expired")
+      return res.status(403).json({
+        // err handling
+        msg: "JWT_EXPIRED",
+      });
+
     if (err && err.name)
       return res.status(403).json({
         // err handling

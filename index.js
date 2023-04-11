@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const masterRouter = require("./src/routes");
 const morgan = require("morgan");
+const mongoose = require("mongoose");
 
 const app = express();
 const port = process.env.APP_PORT || 3000;
@@ -20,4 +21,17 @@ app.use(express.json());
 // routers
 app.use(masterRouter);
 
-app.listen(port, () => console.log(`App running on port: ${port}!`));
+mongoose
+  .connect(
+    `mongodb+srv://${process.env.MONGODB_USER}:${process.env.MONGODB_PASS}@${process.env.MONGODB_HOST}/${process.env.MONGODB_NAME}?retryWrites=true&w=majority`
+  )
+  .then(() => {
+    console.log("Mongo DB Connected");
+    app.listen(port, () => {
+      console.log(`Server is running at port ${port}`);
+    });
+  })
+  .catch((err) => console.log(err));
+
+module.exports = app;
+// app.listen(port, () => console.log(`App running on port: ${port}!`));

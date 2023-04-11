@@ -2,6 +2,7 @@ const authModel = require("../../models/v1/auth.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { jwtSecretKey } = require("../../configs/env");
+const tokenModel = require("../../models/v1/token.model");
 
 const register = async (req, res) => {
   const { email, password, role } = req.body;
@@ -68,10 +69,27 @@ const login = async (req, res) => {
       img: result.rows[0].img,
     };
 
-    const jwtOptions = { expiresIn: "30m" };
+    const jwtOptions = { expiresIn: 30 * 1000 };
 
     jwt.sign(payload, jwtSecretKey, jwtOptions, (err, token) => {
       if (err) throw err;
+
+      let currentDate = new Date();
+      let expirationDate = new Date(
+        currentDate.getTime() + jwtOptions.expiresIn
+      );
+
+      tokenModel.store(
+        {
+          token,
+          expired_at: expirationDate,
+        },
+        (err, result) => {
+          if (err) throw err;
+          console.log("TOKEN ADDED TO WHITELIST" + result);
+        }
+      );
+
       res.status(200).json({
         msg: "LOGIN_SUCCESS",
         data: { token },
@@ -185,10 +203,30 @@ const resetPass = async (req, res) => {
   }
 };
 
+const logout = async (req, res) => {
+  try {
+    const token = req.header("Authorization").split(" ")[1];
+    const removeToken = await tokenModel.destroy(token);
+    if (!removeToken) {
+      throw new Error("Token not valid");
+    }
+    console.log("token invalidate success");
+    res.status(200).json({
+      msg: "LOGOUT_SUCCESS",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      msg: "Internal Server Error",
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
   requestResetPass,
   checkResetPass,
   resetPass,
+  logout,
 };

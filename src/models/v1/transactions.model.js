@@ -53,13 +53,14 @@ const getAllTransactions = (userId, q) => {
 
     let sql = `SELECT t.id AS transaction_id, t.created_at AS transaction_created_at,
     st.placeholder as status,
+    sum(tp.subtotal) AS grandtotal,
     json_agg(json_build_object(
         'id', tp.id,
         'name', p.name,
         'color', c.name,
         'size', s.name,
         'quantity', tp.quantity,
-        'price', p.price
+        'subtotal', tp.subtotal
     )) AS products
     FROM transactions t
     JOIN transaction_product_size_color tp ON t.id = tp.transaction_id
@@ -134,13 +135,14 @@ const getDetailTransaction = (trId) => {
   return new Promise((resolve, reject) => {
     const sql = `SELECT t.id AS transaction_id, t.created_at AS transaction_created_at,
     st.placeholder as status,
+    sum(tp.subtotal) AS grandtotal,
     json_agg(json_build_object(
         'id', tp.id,
         'name', p.name,
         'color', c.name,
         'size', s.name,
         'quantity', tp.quantity,
-        'price', p.price
+        'subtotal', tp.subtotal
     )) AS products
     FROM transactions t
     JOIN transaction_product_size_color tp ON t.id = tp.transaction_id
