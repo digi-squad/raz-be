@@ -28,7 +28,15 @@ cd raz-be
 npm install
 ```
 
-<p>4. Create .env file</p>
+<p>4. Setup your cloudinary account & mongodb account</p>
+
+<p>MongoDB : <a href="https://cloud.mongodb.com/">Click Here</a><br>
+Cloudinary : <a href="https://cloudinary.com/">Click Here</a><br>
+
+</p>
+
+
+<p>5. Create .env file</p>
 
 ```env
 DB_HOST = [YOUR DATABASE HOST]
@@ -36,16 +44,27 @@ DB_NAME = [YOUR DATABASE NAME]
 DB_PORT = [YOUR DATABASE PORT]
 DB_USER = [YOUR DATABASE USERNAME]
 DB_PASS = [YOUR DATABASE PASSWORD]
+
 JWT_SECRET_KEY = [YOUR JWT SECRET KEY]
+
 CLOUD_NAME = [YOUR CLOUDINARY NAME]
 CLOUD_KEY = [YOUR CLOUDINARY API KEY]
 CLOUD_SECRET = [YOUR CLOUDINARY API SECRET]
+
+MONGODB_USER = [YOUR MONGODB USERNAME]
+MONGODB_PASS = [YOUR MONGODB PASSWORD]
+MONGODB_HOST = [YOUR MONGODB HOSTNAME]
+MONGODB_NAME = [YOUR MONGODB DATABASE NAME]
 ```
 
-<p>5. Start the local server</p>
+<p>6. Start the local server</p>
 
 ```bash
 node index.js
+```
+or (if you want auto start if any change in code)
+```
+npm run dev
 ```
 
 
@@ -55,9 +74,15 @@ node index.js
 Technologies used in the project:
 
 *   Express
-*   JWT
+*   JWT (JSON Web Token)
 *   PostgreSQL
+*   Cloudinary (For Upload)
+*   MongoDB
 
 <h2>🛡️ License:</h2>
 
 This project is licensed under the ISC License
+
+<h2>🐞 Suggestion</h2>
+
+If you find bugs or find better ways/suggestions you can pull request.
