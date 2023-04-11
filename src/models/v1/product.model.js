@@ -254,27 +254,6 @@ const getMetadata = (params) => {
     }
 
     if (params.sort) {
-      switch (params.sort) {
-        case "expensive":
-          query += ` ORDER BY p.price DESC`;
-          break;
-
-        case "cheap":
-          query += ` ORDER BY p.price ASC`;
-          break;
-
-        case "oldest":
-          query += ` ORDER BY p.created_at ASC`;
-          break;
-
-        case "bestselling":
-          query += ` ORDER BY p.sold DESC`;
-          break;
-
-        default:
-          query += ` ORDER BY p.created_at DESC`;
-          break;
-      }
       filters = {
         ...filters,
         sort: params.sort,
