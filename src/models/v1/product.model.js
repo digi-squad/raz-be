@@ -68,8 +68,15 @@ const getProduct = (params) => {
     let query = `SELECT p.id, p.name, p.description, p.stock, p.sold, p.price, p.user_id,
     c.name AS category_name, b.name AS brand_name,
     d.name AS condition_name, 
-    array_agg(DISTINCT cl.name || ': ' || cl.hex_code) AS colors,
-    array_agg(DISTINCT s.name) AS sizes,
+    json_agg(DISTINCT jsonb_build_object(
+      'id', cl.id,
+      'name', cl.name,
+      'hex', cl.hex_code
+    )) AS colors,
+    json_agg(DISTINCT jsonb_build_object(
+      'id', s.id,
+      'name', s.name
+    )) AS sizes,
     ARRAY_AGG(DISTINCT i.url) AS image_urls FROM products p
     JOIN product_categories c ON p.category_id = c.id
     JOIN product_brands b ON p.brand_id = b.id
@@ -125,7 +132,7 @@ const getProduct = (params) => {
       query += " WHERE " + queryWhere.join(" AND ");
     }
     query += `
-GROUP BY p.id, p.user_id, c.name, b.name, d.name`;
+GROUP BY p.id, p.user_id, c.name, b.name, d.name, cl.id`;
 
     if (params.sort) {
       switch (params.sort) {
@@ -305,8 +312,15 @@ const getProductDetail = (id) => {
     product_categories.name AS category_name,
     product_brands.name AS brand_name,
     product_conditions.name AS condition_name,
-    array_agg(DISTINCT colors.name || ': ' || colors.hex_code) AS color,
-    array_agg(DISTINCT sizes.name) AS sizes,
+    json_agg(DISTINCT jsonb_build_object(
+      'id', colors.id,
+      'name', colors.name,
+      'hex', colors.hex_code
+    )) AS colors,
+    json_agg(DISTINCT jsonb_build_object(
+      'id', sizes.id,
+      'name', sizes.name
+    )) AS sizes,
     array_agg(DISTINCT product_images.url) AS image_urls,
     users.store_name,
     users.store_desc
