@@ -12,19 +12,25 @@ const newTransaction = (client, userId, paymentId) => {
 };
 
 const createDetailTransaction = (client, body, transactionId) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     const { products } = body;
     let sql =
-      "INSERT INTO transaction_product_size_color (transaction_id, product_id, size_id, color_id,quantity) VALUES ";
+      "INSERT INTO transaction_product_size_color (transaction_id, product_id, size_id, color_id, quantity, subtotal) VALUES ";
     let values = [];
-    products.forEach((product, i) => {
-      const { product_id, size_id, color_id, qty } = product;
+    for (let i = 0; i < products.length; i++) {
+      const { product_id, size_id, color_id, qty } = products[i];
+      const select = await client.query(
+        `SELECT price FROM products WHERE id = $1;`,
+        [product_id]
+      );
+      const subtotal = parseInt(select.rows[0].price) * parseInt(qty);
       if (values.length) sql += ", ";
-      sql += `($${1 + 5 * i}, $${2 + 5 * i}, $${3 + 5 * i}, $${4 + 5 * i}, $${
-        5 + 5 * i
-      })`;
-      values.push(transactionId, product_id, size_id, color_id, qty);
-    });
+      sql += `($${1 + 6 * i}, $${2 + 6 * i}, $${3 + 6 * i}, $${4 + 6 * i}, $${
+        5 + 6 * i
+      }, $${6 + 6 * i})`;
+      values.push(transactionId, product_id, size_id, color_id, qty, subtotal);
+    }
+
     client.query(sql, values, (err) => {
       if (err) return reject(err);
       resolve();
