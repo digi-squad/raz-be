@@ -131,8 +131,7 @@ const getProduct = (params) => {
     if (queryWhere.length > 0) {
       query += " WHERE " + queryWhere.join(" AND ");
     }
-    query += `
-GROUP BY p.id, p.user_id, c.name, b.name, d.name, cl.id`;
+    query += ` GROUP BY p.id, p.user_id, c.name, b.name, d.name`;
 
     if (params.sort) {
       switch (params.sort) {
@@ -190,30 +189,36 @@ const getMetadata = (params) => {
     LEFT JOIN product_images i ON p.id = i.product_id`;
     let queryParams = [];
     let queryWhere = [];
+    let filters = {};
     if (params.search) {
       const searchQuery = `%${params.search}%`;
       queryWhere.push("p.name ILIKE $1");
       queryParams.push(searchQuery);
+      filters = { ...filters, search: searchQuery };
     }
     if (params.category) {
       const categoryQuery = parseInt(params.category);
       queryWhere.push("c.id = $" + (queryParams.length + 1));
       queryParams.push(categoryQuery);
+      filters = { ...filters, category: categoryQuery };
     }
     if (params.sizes) {
       const sizesQuery = parseInt(params.sizes);
       queryWhere.push("ps.size_id = $" + (queryParams.length + 1));
       queryParams.push(sizesQuery);
+      filters = { ...filters, sizes: sizesQuery };
     }
     if (params.brand) {
       const brandQuery = parseInt(params.brand);
       queryWhere.push("p.brand_id = $" + (queryParams.length + 1));
       queryParams.push(brandQuery);
+      filters = { ...filters, brand: brandQuery };
     }
     if (params.colors) {
       const colorsQuery = parseInt(params.colors);
       queryWhere.push("pcl.color_id = $" + (queryParams.length + 1));
       queryParams.push(colorsQuery);
+      filters = { ...filters, color: colorsQuery };
     }
     if (params.min_price && params.max_price) {
       const minPriceQuery = parseInt(params.min_price);
@@ -229,12 +234,54 @@ const getMetadata = (params) => {
       );
       queryParams.push(minPriceQuery);
       queryParams.push(maxPriceQuery);
+      filters = {
+        ...filters,
+        min_price: minPriceQuery,
+        max_price: maxPriceQuery,
+      };
     }
+
+    if (params.limit) {
+      const limitQuery = parseInt(params.limit);
+      filters = {
+        ...filters,
+        limit: limitQuery,
+      };
+    }
+
     if (queryWhere.length > 0) {
       query += " WHERE " + queryWhere.join(" AND ");
     }
-    query += `
-GROUP BY p.id, p.user_id, c.name, b.name, d.name`;
+
+    if (params.sort) {
+      switch (params.sort) {
+        case "expensive":
+          query += ` ORDER BY p.price DESC`;
+          break;
+
+        case "cheap":
+          query += ` ORDER BY p.price ASC`;
+          break;
+
+        case "oldest":
+          query += ` ORDER BY p.created_at ASC`;
+          break;
+
+        case "bestselling":
+          query += ` ORDER BY p.sold DESC`;
+          break;
+
+        default:
+          query += ` ORDER BY p.created_at DESC`;
+          break;
+      }
+      filters = {
+        ...filters,
+        sort: params.sort,
+      };
+    }
+
+    query += ` GROUP BY p.id, p.user_id, c.name, b.name, d.name`;
 
     query += `;`;
 
@@ -247,13 +294,27 @@ GROUP BY p.id, p.user_id, c.name, b.name, d.name`;
       const page = parseInt(params.page) || 1;
       const limit = parseInt(params.limit) || 10;
       const totalPage = Math.ceil(totalData / limit);
-      let next = "";
-      let prev = "";
+      let next = null;
+      let prev = null;
+
+      let urlprev = {
+        ...filters,
+        ...{ page: page - 1 },
+      };
+
+      let urlnext = {
+        ...filters,
+        ...{ page: page + 1 },
+      };
+
+      let prevUrl = new URLSearchParams(urlprev);
+      let nextUrl = new URLSearchParams(urlnext);
+
       if (page > 1) {
-        prev = `/products?page=${page - 1}&limit=${limit}`;
+        prev = `/products?${prevUrl}`;
       }
       if (page < totalPage) {
-        next = `/products?page=${page + 1}&limit=${limit}`;
+        next = `/products?${nextUrl}`;
       }
       const meta = {
         totalData,
