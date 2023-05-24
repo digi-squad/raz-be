@@ -108,7 +108,7 @@ const login = async (req, res) => {
 const requestResetPass = async (req, res) => {
   const { email } = req.body;
   if (email == undefined || email === "")
-    return res.status(422).json({ msg: "EMAIL_IS_REQUIRED" });
+    return res.status(422).json({ status: 422, msg: "EMAIL_IS_REQUIRED" });
   try {
     const result = await authModel.checkEmail(email);
     if (result.rows.length < 1)
