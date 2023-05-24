@@ -3,7 +3,7 @@ const apiv1Router = require("./v1");
 const productsRouter = require("../routes/v1/product.route");
 const masterRouter = Router();
 
-masterRouter.use("/", (req, res) => {
+masterRouter.get("/", (req, res) => {
   res.status(200).json({
     status: 200,
     msg: "Welcome to RAZ Shop Rest API",
