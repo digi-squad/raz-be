@@ -122,6 +122,9 @@ const requestResetPass = async (req, res) => {
 
     // generate verify id for reset
     const generate = await authModel.requestResetPass(result.rows[0].id);
+
+    console.log(`LINK: /resetpass/?verify=${generate.rows[0].verify}`);
+
     const mailData = {
       from: "Raz Shop <admin@digisquad-fw14.dev>", // sender address
       to: email, // list of receivers
