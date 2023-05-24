@@ -1,88 +1,140 @@
-<h1 id="title" align="center">RAZ-BE</h1>
+<div style="text-align: center;">
 
-<p align="center"><img src="https://socialify.git.ci/digi-squad/raz-be/image?description=1&amp;language=1&amp;name=1&amp;owner=1&amp;pattern=Charlie%20Brown&amp;theme=Dark" alt="project-image"></p>
+<img src="./images/logo.png" width="200"/>
 
-<p id="description">The back-end part of the "RAZ" website. For the front-end part <a href="https://github.com/digi-squad/raz-fe">click here!</a></p>
+<h1 style="border:0;margin:1rem">RAZ Furniture Shop</h1>
 
-<h2>🚀 Demo</h2>
+Rest API for RAZ Furniture Shop
 
-[click here!](https://raz-be.vercel.app/)
+[Demo](https://raz-be.vercel.app) · [Suggestion](#suggestion)
 
-<h2>🛠️ Installation Steps:</h2>
+<hr>
+<br>
 
-<p>1. Clone this repo</p>
-
-```bash
-git clone https://github.com/digi-squad/raz-be.git
-```
-
-<p>2. Enter the directory</p>
-
-```bash
-cd raz-be
-```
-
-<p>3. Install all dependencies</p>
-
-```bash
-npm install
-```
-
-<p>4. Setup your cloudinary account & mongodb account</p>
-
-<p>MongoDB : <a href="https://cloud.mongodb.com/">Click Here</a><br>
-Cloudinary : <a href="https://cloudinary.com/">Click Here</a><br>
-
-</p>
+</div>
 
 
-<p>5. Create .env file</p>
+## Table of Contents
 
-```env
-DB_HOST = [YOUR DATABASE HOST]
-DB_NAME = [YOUR DATABASE NAME]
-DB_PORT = [YOUR DATABASE PORT]
-DB_USER = [YOUR DATABASE USERNAME]
-DB_PASS = [YOUR DATABASE PASSWORD]
+- [Table of Contents](#table-of-contents)
+- [Related Projects](#related-projects)
+- [Technologies Used](#technologies-used)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [Postman Collection](#postman-collection)
+- [Resources](#resources)
+- [Contributors](#contributors)
+- [License](#license)
+- [Suggestion](#suggestion)
 
-JWT_SECRET_KEY = [YOUR JWT SECRET KEY]
+## Related Projects
 
-CLOUD_NAME = [YOUR CLOUDINARY NAME]
-CLOUD_KEY = [YOUR CLOUDINARY API KEY]
-CLOUD_SECRET = [YOUR CLOUDINARY API SECRET]
+- [raz-fe](https://github.com/digi-squad/raz-fe) - Frontend
 
-MONGODB_USER = [YOUR MONGODB USERNAME]
-MONGODB_PASS = [YOUR MONGODB PASSWORD]
-MONGODB_HOST = [YOUR MONGODB HOSTNAME]
-MONGODB_NAME = [YOUR MONGODB DATABASE NAME]
-```
+## Technologies Used
 
-<p>6. Start the local server</p>
+[![My Skills](https://skillicons.dev/icons?i=js,express,mongodb,postgresql,supabase)](https://skillicons.dev)
 
-```bash
-node index.js
-```
-or (if you want auto start if any change in code)
-```
-npm run dev
-```
+- Express.js
+- JSON Web Token
+- pg (postgresql)
+- mongoose (MongoDB)
+- nodemailer
+- Cloudinary
+- etc.
 
+## Getting Started
 
+### Prerequisites
 
-<h2>💻 Built with</h2>
+- [Node.js](https://nodejs.org/)
+- [PostgreSQL](https://postgresql.org/)
+- [MongoDB](https://cloud.mongodb.com/)
+- [SMTP Account](https://nodemailer.com/about/)
+- [Cloudinary Account](https://cloudinary.com/)
 
-Technologies used in the project:
+### Installation
 
-*   Express
-*   JWT (JSON Web Token)
-*   PostgreSQL
-*   Cloudinary (For Upload)
-*   MongoDB
+1. Clone this repo
 
-<h2>🛡️ License:</h2>
+    ```bash
+    git clone https://github.com/digi-squad/raz-be.git
+    ```
+
+2. Enter the directory
+
+    ```bash
+    cd raz-be
+    ```
+
+3. Install all dependencies
+
+    ```bash
+    npm install
+    ```
+
+4. Create .env file
+
+    ```env
+    DB_HOST = [YOUR DATABASE HOST]
+    DB_NAME = [YOUR DATABASE NAME]
+    DB_PORT = [YOUR DATABASE PORT]
+    DB_USER = [YOUR DATABASE USERNAME]
+    DB_PASS = [YOUR DATABASE PASSWORD]
+
+    JWT_SECRET_KEY = [YOUR JWT SECRET KEY]
+
+    CLOUD_NAME = [YOUR CLOUDINARY NAME]
+    CLOUD_KEY = [YOUR CLOUDINARY API KEY]
+    CLOUD_SECRET = [YOUR CLOUDINARY API SECRET]
+
+    MONGODB_USER = [YOUR MONGODB USERNAME]
+    MONGODB_PASS = [YOUR MONGODB PASSWORD]
+    MONGODB_HOST = [YOUR MONGODB HOSTNAME]
+    MONGODB_NAME = [YOUR MONGODB DATABASE NAME]
+        
+    NODEMAILER_HOST = [YOUR SMTP HOST]
+    NODEMAILER_PORT = [YOUR SMTP PORT]
+    NODEMAILER_USER = [YOUR SMTP EMAIL/USER]
+    NODEMAILER_PASS = [YOUR SMTP PASSWORD]
+    ```
+
+5. Start the local server
+
+    ```bash
+    node index.js
+    ```
+
+    or (if you want auto start if any change in code)
+
+    ```bash
+    npm run dev
+    ```
+
+## Postman Collection
+
+You can see in [here](https://www.postman.com/digital-squad-fw14/workspace/raz-shop/collection/26209677-ec41282f-6ed0-43f6-95c6-25c1d0385ad6). You can fork/duplicate to your workspace
+
+## Resources
+
+Special thanks to:
+
+- [Vercel](https://vercel.com) - deploying code
+- [rKalways](https://codepen.io/rKalways) - Reset password email template
+
+## Contributors
+
+- [M. Pria Admaja](https://github.com/PriaAdmaja) - Project Manager & Fullstack Developer
+- [Raihan Irvana](https://github.com/PriaAdmaja) - Back-end Developer
+- [Farhan Brillan W](https://github.com/PriaAdmaja) - Back-end Developer
+- [Akmal Susetio](https://github.com/wyakaga) - Front-end Developer
+- [Damar Anggoro](https://github.com/PriaAdmaja) - Front-end Developer
+
+## License
 
 This project is licensed under the ISC License
 
-<h2>🐞 Suggestion</h2>
+## Suggestion
 
-If you find bugs or find better ways/suggestions you can pull request.
+If you find bugs / find better ways / suggestions you can pull request.
