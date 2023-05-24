@@ -3,6 +3,8 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { jwtSecretKey } = require("../../configs/env");
 const tokenModel = require("../../models/v1/token.model");
+const nodemailer = require("../../utils/nodemailer");
+const { emailHtml } = require("../../html/resetpass");
 
 const register = async (req, res) => {
   const { email, password, role } = req.body;
@@ -111,6 +113,7 @@ const requestResetPass = async (req, res) => {
     const result = await authModel.checkEmail(email);
     if (result.rows.length < 1)
       return res.status(404).json({
+        status: 404,
         msg: "EMAIL_NOT_REGISTERED",
       });
 
@@ -119,13 +122,32 @@ const requestResetPass = async (req, res) => {
 
     // generate verify id for reset
     const generate = await authModel.requestResetPass(result.rows[0].id);
+    const mailData = {
+      from: "Raz Shop <admin@digisquad-fw14.dev>", // sender address
+      to: email, // list of receivers
+      subject: "Password Reset at Raz Shop",
+      text: `You have requested to reset your password.\n
+              We cannot simply send you your old password. A unique link to reset your password has been generated for you. To reset your password, go to the following link and follow the instructions.\n
+              https://raz-fe.vercel.app/resetpass/?verify=${generate.rows[0].verify}
+      `,
+      html: emailHtml(generate.rows[0].verify),
+    };
+
+    nodemailer.transporter.sendMail(mailData, (err, info) => {
+      if (err) {
+        return console.log(err);
+      }
+      console.log(info);
+    });
     console.log(`LINK: /resetpass/?verify=${generate.rows[0].verify}`);
     res.status(201).json({
+      status: 201,
       msg: "RESET_LINK_HAS_BEEN_CREATED",
     });
   } catch (error) {
     console.log(error.message);
     res.status(500).json({
+      status: 500,
       msg: "INTERNAL_SERVER_ERROR",
     });
   }
