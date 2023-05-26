@@ -17,6 +17,7 @@ const uploader = async (file, prefix, id) => {
     });
     return result;
   } catch (err) {
+    console.log(err);
     return { secure_url: null };
   }
 };
