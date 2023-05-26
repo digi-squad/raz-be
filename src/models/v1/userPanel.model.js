@@ -4,9 +4,20 @@ const getProfile = (userId, role) => {
   return new Promise((resolve, reject) => {
     let store = "";
     if (role === 2) {
-      store = ",store_name, store_desc";
+      store = ",u.store_name, u.store_desc";
     }
-    const sql = `SELECT id, email, name, img ${store} FROM users WHERE id = $1`;
+    const sql = `
+    SELECT 
+      u.id, u.email, u.name, u.img, u.gender_id, ug.name as gender_name ${store} 
+    FROM 
+      users u
+    JOIN 
+      user_genders ug 
+    ON 
+      ug.id = u.gender_id  
+    WHERE 
+      u.id = $1`;
+
     db.query(sql, [userId], (err, result) => {
       if (err) return reject(err);
       resolve(result);
