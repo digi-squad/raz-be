@@ -113,6 +113,11 @@ const getProduct = (params) => {
       queryWhere.push("pcl.color_id = $" + (queryParams.length + 1));
       queryParams.push(colorsQuery);
     }
+    if (params.seller_id) {
+      const sellerQuery = params.seller_id;
+      queryWhere.push("p.user_id = $" + (queryParams.length + 1));
+      queryParams.push(sellerQuery);
+    }
     if (params.min_price && params.max_price) {
       const minPriceQuery = parseInt(params.min_price);
       const maxPriceQuery = parseInt(params.max_price);
@@ -219,6 +224,11 @@ const getMetadata = (params) => {
       queryWhere.push("pcl.color_id = $" + (queryParams.length + 1));
       queryParams.push(colorsQuery);
       filters = { ...filters, color: colorsQuery };
+    }
+    if (params.seller_id) {
+      const sellerQuery = params.seller_id;
+      queryWhere.push("p.user_id = $" + (queryParams.length + 1));
+      queryParams.push(sellerQuery);
     }
     if (params.min_price && params.max_price) {
       const minPriceQuery = parseInt(params.min_price);
