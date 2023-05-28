@@ -6,11 +6,6 @@ const masterRouter = Router();
 
 masterRouter.use("/apiv1", apiv1Router);
 masterRouter.use("/products", productsRouter);
-masterRouter.get("/", (req, res) => {
-  res.status(200).json({
-  status: 200,
-  msg: "Welcome to RAZ Furniture Shop REST API!"}),
-});
 
 
 module.exports = masterRouter;
