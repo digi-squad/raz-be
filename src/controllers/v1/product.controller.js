@@ -189,17 +189,25 @@ const getProductDetail = async (req, res) => {
 };
 
 const deleteProduct = async (req, res) => {
+  const client = await db.connect();
   try {
+    client.query("BEGIN");
     const { id } = req.params;
-    await productModels.deleteProduct(id);
-    await productModels.deleteProductImage(id);
-    await productModels.deleteProductColor(id);
+    await productModels.deleteProductColor(client, id);
+    await productModels.deleteProductImage(client, id);
+    await productModels.deleteProductSizes(client, id);
+    await productModels.deleteProduct(client, id);
+    client.query("ROLLBACK");
     res.status(200).json({
-      msg: "delete berhasil",
+      status: 200,
+      msg: "DELETE_PRODUCT_SUCCESSFULLY",
     });
   } catch (error) {
+    client.query("ROLLBACK");
+    console.log(error.message);
     res.status(500).json({
-      msg: "internal server error",
+      status: 500,
+      msg: "INTERNAL_SERVER_ERROR",
     });
   }
 };

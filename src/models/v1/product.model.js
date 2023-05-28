@@ -407,10 +407,10 @@ const getProductDetail = (id) => {
   });
 };
 
-const deleteProduct = (id) => {
+const deleteProduct = (client, id) => {
   return new Promise((resolve, reject) => {
     const sql = "delete from products where id = $1";
-    db.query(sql, [id], (err, result) => {
+    client.query(sql, [id], (err, result) => {
       if (err) {
         reject(err);
       }
@@ -419,10 +419,10 @@ const deleteProduct = (id) => {
   });
 };
 
-const deleteProductImage = (id) => {
+const deleteProductImage = (client, id) => {
   return new Promise((resolve, reject) => {
     const sql = "delete from product_images where product_id = $1";
-    db.query(sql, [id], (err, result) => {
+    client.query(sql, [id], (err, result) => {
       if (err) {
         reject(err);
       }
@@ -431,10 +431,21 @@ const deleteProductImage = (id) => {
   });
 };
 
-const deleteProductColor = (id) => {
+const deleteProductColor = (client, product_id) => {
   return new Promise((resolve, reject) => {
-    const sql = "delete from product_colors where id = $1";
-    db.query(sql, [id], (err, result) => {
+    const sql = "delete from product_colors where product_id = $1";
+    client.query(sql, [product_id], (err, result) => {
+      if (err) {
+        reject(err);
+      }
+      resolve(result);
+    });
+  });
+};
+const deleteProductSizes = (client, product_id) => {
+  return new Promise((resolve, reject) => {
+    const sql = "delete from product_sizes where product_id = $1";
+    client.query(sql, [product_id], (err, result) => {
       if (err) {
         reject(err);
       }
@@ -456,4 +467,5 @@ module.exports = {
   deleteProduct,
   deleteProductImage,
   deleteProductColor,
+  deleteProductSizes,
 };
