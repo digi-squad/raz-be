@@ -51,26 +51,40 @@ const getAllTransactions = (userId, q) => {
       values.push(parseInt(q.status));
     }
 
-    let sql = `SELECT t.id AS transaction_id, t.created_at AS transaction_created_at,
-    st.placeholder as status,
-    sum(tp.subtotal) AS grandtotal,
-    json_agg(json_build_object(
-        'id', tp.id,
-        'name', p.name,
-        'color', c.name,
-        'size', s.name,
-        'quantity', tp.quantity,
-        'subtotal', tp.subtotal
-    )) AS products
-    FROM transactions t
-    JOIN transaction_product_size_color tp ON t.id = tp.transaction_id
-    JOIN products p ON tp.product_id = p.id
-    JOIN colors c ON tp.color_id = c.id
-    JOIN sizes s ON tp.size_id = s.id
-    JOIN status st ON t.status_id = st.id
-    WHERE t.user_id = $1 ${status}
-    GROUP BY t.id, t.created_at, st.placeholder
-    ORDER BY t.created_at DESC`;
+    let sql = `
+    SELECT 
+      t.id AS transaction_id, 
+      t.created_at AS transaction_created_at,
+      st.placeholder as status,
+      sum(tp.subtotal) AS grandtotal,
+      json_agg(json_build_object(
+          'id', tp.id,
+          'name', p.name,
+          'color', c.name,
+          'size', s.name,
+          'quantity', tp.quantity,
+          'subtotal', tp.subtotal
+      )) AS products
+    FROM 
+      transactions t
+    JOIN 
+      transaction_product_size_color tp ON t.id = tp.transaction_id
+    JOIN 
+      products p ON tp.product_id = p.id
+    JOIN 
+      colors c ON tp.color_id = c.id
+    JOIN 
+      sizes s ON tp.size_id = s.id
+    JOIN 
+      status st ON t.status_id = st.id
+    WHERE 
+      t.user_id = $1 ${status}
+    GROUP BY 
+      t.id, 
+      t.created_at, 
+      st.placeholder
+    ORDER BY 
+      t.created_at DESC`;
 
     sql += " LIMIT $2 OFFSET $3";
     db.query(sql, values, (err, result) => {

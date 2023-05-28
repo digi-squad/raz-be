@@ -85,10 +85,27 @@ const editProfile = (userId, body, dataImage) => {
 
 const getWishlists = (userId) => {
   return new Promise((resolve, reject) => {
-    const sql = `SELECT uw.id ,uw.product_id, p.name, pi.url as img_url,  p.stock, p.price FROM user_wishlists uw 
-      JOIN products p ON p.id = uw.product_id 
-      JOIN product_images pi ON p.id = pi.product_id 
-      WHERE uw.user_id = $1`;
+    const sql = `
+    SELECT 
+      p.id, 
+      uw.id ,
+      uw.product_id, 
+      p.name, 
+      ARRAY_AGG(pi.url) AS img_urls,  
+      p.stock, p.price 
+    FROM 
+      user_wishlists uw 
+    JOIN 
+      products p ON p.id = uw.product_id 
+    JOIN 
+      product_images pi ON p.id = pi.product_id 
+    WHERE 
+      uw.user_id = $1 
+    GROUP BY 
+      p.id, 
+      uw.id, 
+      p.name, 
+      pi.product_id`;
     db.query(sql, [userId], (err, result) => {
       if (err) return reject(err);
       resolve(result);
