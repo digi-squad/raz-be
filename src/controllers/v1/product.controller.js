@@ -193,11 +193,18 @@ const deleteProduct = async (req, res) => {
   try {
     client.query("BEGIN");
     const { id } = req.params;
+    const checkProduct = await productModels.getProductDetail(id);
+    if (checkProduct.rows < 1) {
+      return res.status(404).json({
+        status: 404,
+        msg: "PRODUCT_NOT_FOUND",
+      });
+    }
     await productModels.deleteProductColor(client, id);
     await productModels.deleteProductImage(client, id);
     await productModels.deleteProductSizes(client, id);
     await productModels.deleteProduct(client, id);
-    client.query("ROLLBACK");
+    client.query("COMMIT");
     res.status(200).json({
       status: 200,
       msg: "DELETE_PRODUCT_SUCCESSFULLY",
