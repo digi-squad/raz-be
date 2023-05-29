@@ -25,6 +25,13 @@ transactionRoute.get(
   transactionController.listOrderSeller
 );
 
+transactionRoute.patch(
+  "/seller",
+  auth.check,
+  auth.seller,
+  transactionController.setDoneTransaction
+);
+
 transactionRoute.get(
   "/:id",
   auth.check,

@@ -193,7 +193,7 @@ const getMetaOrderSeller = (seller_id, query) => {
       }
     }
 
-    console.log(sql);
+    // console.log(sql);
     db.query(sql, values, (err, result) => {
       if (err) reject(err);
       const totalData = parseInt(result.rows.length);
@@ -370,6 +370,27 @@ const getDetailTransaction = (trId) => {
   });
 };
 
+const setDoneTransactionById = (userId, transactionId) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+    UPDATE transactions
+    SET status_id = 3
+    WHERE id = $2
+      AND EXISTS (
+        SELECT 1
+        FROM transaction_product_size_color AS tpsc
+        INNER JOIN products ON products.id = tpsc.product_id
+        WHERE tpsc.transaction_id = transactions.id
+          AND products.user_id = $1
+      )
+    RETURNING *`;
+    db.query(sql, [userId, transactionId], (err, result) => {
+      if (err) reject(err);
+      resolve(result);
+    });
+  });
+};
+
 module.exports = {
   newTransaction,
   createDetailTransaction,
@@ -378,4 +399,5 @@ module.exports = {
   getDetailTransaction,
   getOrderSeller,
   getMetaOrderSeller,
+  setDoneTransactionById,
 };
