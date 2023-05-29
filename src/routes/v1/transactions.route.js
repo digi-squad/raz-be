@@ -19,6 +19,13 @@ transactionRoute.post(
 );
 
 transactionRoute.get(
+  "/seller",
+  auth.check,
+  auth.seller,
+  transactionController.listOrderSeller
+);
+
+transactionRoute.get(
   "/:id",
   auth.check,
   auth.customer,

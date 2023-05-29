@@ -38,6 +38,201 @@ const createDetailTransaction = (client, body, transactionId) => {
   });
 };
 
+const getOrderSeller = (seller_id, query) => {
+  return new Promise((resolve, reject) => {
+    let values = [];
+    let queryWhere = [];
+
+    // filter seller
+    const searchQuery = seller_id;
+    queryWhere.push("p.user_id = $1");
+    values.push(searchQuery);
+
+    if (query.status_id) {
+      const statusQuery = parseInt(query.status_id);
+      queryWhere.push("t.status_id = $" + (values.length + 1));
+      values.push(statusQuery);
+    }
+
+    let sql = `SELECT 
+    t.id AS transaction_id, 
+    t.created_at AS transaction_created_at,
+    st.placeholder as status,
+    st.id as status_id,
+    sum(tp.subtotal) AS grandtotal,
+    json_agg(json_build_object(
+        'id', tp.id,
+        'name', p.name,
+        'color', c.name,
+        'size', s.name,
+        'quantity', tp.quantity,
+        'subtotal', tp.subtotal
+    )) AS products
+    FROM 
+      transactions t
+    JOIN 
+      transaction_product_size_color tp ON t.id = tp.transaction_id
+    JOIN 
+      products p ON tp.product_id = p.id
+    JOIN 
+      colors c ON tp.color_id = c.id
+    JOIN 
+      sizes s ON tp.size_id = s.id
+    JOIN 
+      status st ON t.status_id = st.id`;
+
+    if (queryWhere.length > 0) {
+      sql += " WHERE " + queryWhere.join(" AND ");
+    }
+
+    sql += `
+    GROUP BY 
+      t.id, 
+      t.created_at,
+      st.placeholder,
+      st.id`;
+    if (query.sort) {
+      sql += " ORDER BY ";
+      switch (query.sort) {
+        case "newest":
+          sql += "t.created_at DESC";
+          break;
+        case "oldest":
+          sql += "t.created_at ASC";
+          break;
+
+        default:
+          sql += "t.created_at DESC";
+          break;
+      }
+    }
+
+    // pagination
+
+    let limitQuery = parseInt(query.limit);
+    if (isNaN(limitQuery)) limitQuery = 10;
+    if (limitQuery > 50) limitQuery = 50;
+
+    sql += ` LIMIT $${values.length + 1}`;
+    values.push(limitQuery);
+
+    let pageQuery = parseInt(query.page);
+    if (isNaN(pageQuery)) {
+      pageQuery = "1";
+    }
+    const offset = (pageQuery - 1) * limitQuery;
+    sql += ` OFFSET $${values.length + 1}`;
+    values.push(offset);
+
+    // console.log(sql);
+    db.query(sql, values, (err, result) => {
+      if (err) reject(err);
+      resolve(result);
+    });
+  });
+};
+
+const getMetaOrderSeller = (seller_id, query) => {
+  return new Promise((resolve, reject) => {
+    let values = [];
+    let queryWhere = [];
+    let filters = {};
+
+    // filter seller
+    const searchQuery = seller_id;
+    queryWhere.push("p.user_id = $1");
+    values.push(searchQuery);
+
+    if (query.status_id) {
+      const statusQuery = parseInt(query.status_id);
+      queryWhere.push("t.status_id = $" + (values.length + 1));
+      values.push(statusQuery);
+      filters = { ...filters, status_id: statusQuery };
+    }
+
+    let sql = `SELECT 
+      COUNT(*) as total_data
+    FROM 
+      transactions t
+    JOIN 
+      transaction_product_size_color tp ON t.id = tp.transaction_id
+    JOIN 
+      products p ON tp.product_id = p.id
+    JOIN 
+      colors c ON tp.color_id = c.id
+    JOIN 
+      sizes s ON tp.size_id = s.id
+    JOIN 
+      status st ON t.status_id = st.id`;
+
+    if (queryWhere.length > 0) {
+      sql += " WHERE " + queryWhere.join(" AND ");
+    }
+
+    sql += `
+    GROUP BY 
+      t.id, 
+      t.created_at,
+      st.placeholder,
+      st.id`;
+    if (query.sort) {
+      sql += " ORDER BY ";
+      switch (query.sort) {
+        case "newest":
+          sql += "t.created_at DESC";
+          filters = { ...filters, sort: "newest" };
+          break;
+        case "oldest":
+          sql += "t.created_at ASC";
+          filters = { ...filters, sort: "oldest" };
+          break;
+
+        default:
+          sql += "t.created_at DESC";
+          break;
+      }
+    }
+
+    console.log(sql);
+    db.query(sql, values, (err, result) => {
+      if (err) reject(err);
+      const totalData = parseInt(result.rows.length);
+      const page = parseInt(query.page) || 1;
+      const limit = parseInt(query.limit) || 10;
+      const totalPage = Math.ceil(totalData / limit);
+      let next = null;
+      let prev = null;
+
+      let urlprev = {
+        ...filters,
+        ...{ page: page - 1 },
+      };
+
+      let urlnext = {
+        ...filters,
+        ...{ page: page + 1 },
+      };
+
+      let prevUrl = new URLSearchParams(urlprev);
+      let nextUrl = new URLSearchParams(urlnext);
+
+      if (page > 1) {
+        prev = `/products?${prevUrl}`;
+      }
+      if (page < totalPage) {
+        next = `/products?${nextUrl}`;
+      }
+      const meta = {
+        totalData,
+        next,
+        prev,
+        totalPage,
+      };
+      resolve(meta);
+    });
+  });
+};
+
 const getAllTransactions = (userId, q) => {
   return new Promise((resolve, reject) => {
     const limit = parseInt(q.limit) || 10;
@@ -181,4 +376,6 @@ module.exports = {
   metaAllTransactions,
   getAllTransactions,
   getDetailTransaction,
+  getOrderSeller,
+  getMetaOrderSeller,
 };

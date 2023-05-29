@@ -66,8 +66,29 @@ const detailTransaction = async (req, res) => {
   }
 };
 
+const listOrderSeller = async (req, res) => {
+  try {
+    const { id } = req.authInfo;
+    const result = await trModel.getOrderSeller(id, req.query);
+    const meta = await trModel.getMetaOrderSeller(id, req.query);
+    res.status(200).json({
+      status: 200,
+      meta,
+      msg: "SUCCESS_FETCH_DATA",
+      data: result.rows,
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({
+      status: 500,
+      msg: "INTERNAL_SERVER_ERROR",
+    });
+  }
+};
+
 module.exports = {
   addTransaction,
   listTransactions,
   detailTransaction,
+  listOrderSeller,
 };
