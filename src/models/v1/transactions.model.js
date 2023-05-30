@@ -216,7 +216,7 @@ const getMetaOrderSeller = (seller_id, query) => {
       let prevUrl = new URLSearchParams(urlprev);
       let nextUrl = new URLSearchParams(urlnext);
 
-      if (page > 1) {
+      if (page > 1 && totalData > 1) {
         prev = `/products?${prevUrl}`;
       }
       if (page < totalPage) {
