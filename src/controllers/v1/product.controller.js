@@ -30,8 +30,8 @@ const cloudUpload = async (req, res, next) => {
 };
 
 const insertProduct = async (req, res) => {
+  const client = await db.connect();
   try {
-    const client = await db.connect();
     client.query("BEGIN");
 
     const { body, uploadResults } = req;
