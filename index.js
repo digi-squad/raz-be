@@ -4,13 +4,13 @@ const cors = require("cors");
 const masterRouter = require("./src/routes");
 const morgan = require("morgan");
 const mongoose = require("mongoose");
-const allowCors = require("./src/middlewares/allowCors")
+// const allowCors = require("./src/middlewares/allowCors")
 
 const app = express();
 const port = process.env.APP_PORT || 3000;
 
 app.use(cors());
-app.use(allowCors());
+// app.use(allowCors());
 
 // morgan for logging
 app.use(
