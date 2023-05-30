@@ -10,7 +10,7 @@ const app = express();
 const port = process.env.APP_PORT || 3000;
 
 app.use(cors());
-app.use(allowCors)
+app.use(allowCors());
 
 // morgan for logging
 app.use(
