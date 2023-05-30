@@ -87,6 +87,8 @@ const insertProduct = async (req, res) => {
     res.status(500).json({
       msg: "INTERNAL_SERVER_ERROR",
     });
+  } finally {
+    client.release();
   }
 };
 
