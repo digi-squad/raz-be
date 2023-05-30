@@ -31,7 +31,7 @@ const cloudUpload = async (req, res, next) => {
 
 const insertProduct = async (req, res) => {
   let client
-  try {
+  try {    
     client = await db.connect();
     client.query("BEGIN");
 
@@ -83,13 +83,17 @@ const insertProduct = async (req, res) => {
       images,
     });
   } catch (error) {
-    client.query("ROLLBACK");
+    if (client) {
+      client.query("ROLLBACK");
+    }
     console.log(error);
     res.status(500).json({
       msg: "INTERNAL_SERVER_ERROR",
     });
   } finally {
-    client.release();
+    if (client) {
+      client.release();
+    }
   }
 };
 
