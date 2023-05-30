@@ -66,8 +66,55 @@ const detailTransaction = async (req, res) => {
   }
 };
 
+const listOrderSeller = async (req, res) => {
+  try {
+    const { id } = req.authInfo;
+    const result = await trModel.getOrderSeller(id, req.query);
+    const meta = await trModel.getMetaOrderSeller(id, req.query);
+    res.status(200).json({
+      status: 200,
+      msg: "SUCCESS_FETCH_DATA",
+      meta,
+      data: result.rows,
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({
+      status: 500,
+      msg: "INTERNAL_SERVER_ERROR",
+    });
+  }
+};
+
+const setDoneTransaction = async (req, res) => {
+  try {
+    const { id } = req.authInfo;
+    const { transaction_id } = req.body;
+
+    const result = await trModel.setDoneTransactionById(id, transaction_id);
+    if (result.rows.length < 1) {
+      return res.status(200).json({
+        status: 404,
+        msg: "TRANSACTION_NOT_FOUND_OR_NOT_BELONGS_TO_YOU",
+      });
+    }
+    res.status(200).json({
+      status: 200,
+      msg: "SUCCESS_SET_STATUS_PROCESSED",
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({
+      status: 500,
+      msg: "INTERNAL_SERVER_ERROR",
+    });
+  }
+};
+
 module.exports = {
   addTransaction,
   listTransactions,
   detailTransaction,
+  listOrderSeller,
+  setDoneTransaction,
 };
