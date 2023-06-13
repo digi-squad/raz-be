@@ -17,7 +17,6 @@ Rest API for RAZ Furniture Shop
 ## Table of Contents
 
 - [Table of Contents](#table-of-contents)
-- [Related Projects](#related-projects)
 - [Technologies Used](#technologies-used)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
@@ -25,12 +24,10 @@ Rest API for RAZ Furniture Shop
 - [Postman Collection](#postman-collection)
 - [Resources](#resources)
 - [Contributors](#contributors)
+- [Related Projects](#related-projects)
 - [License](#license)
 - [Suggestion](#suggestion)
 
-## Related Projects
-
-- [raz-fe](https://github.com/digi-squad/raz-fe) - Frontend
 
 ## Technologies Used
 
@@ -130,6 +127,10 @@ Special thanks to:
 - [Farhan Brillan W](https://github.com/PriaAdmaja) - Back-end Developer
 - [Akmal Susetio](https://github.com/wyakaga) - Front-end Developer
 - [Damar Anggoro](https://github.com/PriaAdmaja) - Front-end Developer
+
+## Related Projects
+
+- [raz-fe](https://github.com/digi-squad/raz-fe) - Frontend
 
 ## License
 
