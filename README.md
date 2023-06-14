@@ -1,23 +1,25 @@
 <div align='center' style="text-align: center;">
 
-<img src="./images/logo.png" width="200"/>
+<img src="./images/logo.png" width="144"/><br>
 
-<h1 style="border:0;margin:1rem">RAZ Furniture Shop</h1>
+[![My Skills](https://skillicons.dev/icons?i=js,express,mongodb,postgresql,supabase)](#technologies-used)
+
+<h2 style="border:0;margin:1rem">RAZ Furniture Shop</h2>
 
 Rest API for RAZ Furniture Shop
 
-[Demo](https://raz-be.vercel.app) · [Suggestion](#suggestion)
+[Demo](https://raz-be.vercel.app) · [Related Projects](#related-projects)
 
 <hr>
 <br>
 
 </div>
 
-
 ## Table of Contents
 
-- [Table of Contents](#table-of-contents)
+- [Overview](#overview)
 - [Technologies Used](#technologies-used)
+  - [Features](#features)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
@@ -28,17 +30,29 @@ Rest API for RAZ Furniture Shop
 - [License](#license)
 - [Suggestion](#suggestion)
 
+## Overview
+
+Raz Furniture Shop is a modern and stylish online furniture store where dedicated for people who don't have much time
+exploring the mall alleys, finding cheap products yet have high quality.
+
+This repository contains the source code and documentation for the Raz Furniture Shop Rest API.
+
+### Features
+
+- Authentication & Authorization
+- Products (search, sort, filter, update, create, delete)
+- Customer Role: New Order, Profile
+- Seller Role: Manage Order, Manage Products, Seller Profile
+- Error Handling
+- etc.
 
 ## Technologies Used
 
-[![My Skills](https://skillicons.dev/icons?i=js,express,mongodb,postgresql,supabase)](https://skillicons.dev)
-
-- Express.js
-- JSON Web Token
-- pg (postgresql)
-- mongoose (MongoDB)
-- nodemailer
-- Cloudinary
+- [Express.js](https://expressjs.com/)
+- [pg (postgresql)](https://www.postgresql.org/) for storing user data
+- [mongoose (MongoDB)](https://www.mongodb.com/) - for storing whitelist token
+- [nodemailer](https://nodemailer.com/about/) - for sending email
+- [Cloudinary](https://cloudinary.com/) - for storing images
 - etc.
 
 ## Getting Started
@@ -55,59 +69,59 @@ Rest API for RAZ Furniture Shop
 
 1. Clone this repo
 
-    ```bash
-    git clone https://github.com/digi-squad/raz-be.git
-    ```
+   ```bash
+   git clone https://github.com/digi-squad/raz-be.git
+   ```
 
 2. Enter the directory
 
-    ```bash
-    cd raz-be
-    ```
+   ```bash
+   cd raz-be
+   ```
 
 3. Install all dependencies
 
-    ```bash
-    npm install
-    ```
+   ```bash
+   npm install
+   ```
 
 4. Create .env file
 
-    ```env
-    DB_HOST = [YOUR DATABASE HOST]
-    DB_NAME = [YOUR DATABASE NAME]
-    DB_PORT = [YOUR DATABASE PORT]
-    DB_USER = [YOUR DATABASE USERNAME]
-    DB_PASS = [YOUR DATABASE PASSWORD]
+   ```env
+   DB_HOST = [YOUR DATABASE HOST]
+   DB_NAME = [YOUR DATABASE NAME]
+   DB_PORT = [YOUR DATABASE PORT]
+   DB_USER = [YOUR DATABASE USERNAME]
+   DB_PASS = [YOUR DATABASE PASSWORD]
 
-    JWT_SECRET_KEY = [YOUR JWT SECRET KEY]
+   JWT_SECRET_KEY = [YOUR JWT SECRET KEY]
 
-    CLOUD_NAME = [YOUR CLOUDINARY NAME]
-    CLOUD_KEY = [YOUR CLOUDINARY API KEY]
-    CLOUD_SECRET = [YOUR CLOUDINARY API SECRET]
+   CLOUD_NAME = [YOUR CLOUDINARY NAME]
+   CLOUD_KEY = [YOUR CLOUDINARY API KEY]
+   CLOUD_SECRET = [YOUR CLOUDINARY API SECRET]
 
-    MONGODB_USER = [YOUR MONGODB USERNAME]
-    MONGODB_PASS = [YOUR MONGODB PASSWORD]
-    MONGODB_HOST = [YOUR MONGODB HOSTNAME]
-    MONGODB_NAME = [YOUR MONGODB DATABASE NAME]
-        
-    NODEMAILER_HOST = [YOUR SMTP HOST]
-    NODEMAILER_PORT = [YOUR SMTP PORT]
-    NODEMAILER_USER = [YOUR SMTP EMAIL/USER]
-    NODEMAILER_PASS = [YOUR SMTP PASSWORD]
-    ```
+   MONGODB_USER = [YOUR MONGODB USERNAME]
+   MONGODB_PASS = [YOUR MONGODB PASSWORD]
+   MONGODB_HOST = [YOUR MONGODB HOSTNAME]
+   MONGODB_NAME = [YOUR MONGODB DATABASE NAME]
+
+   NODEMAILER_HOST = [YOUR SMTP HOST]
+   NODEMAILER_PORT = [YOUR SMTP PORT]
+   NODEMAILER_USER = [YOUR SMTP EMAIL/USER]
+   NODEMAILER_PASS = [YOUR SMTP PASSWORD]
+   ```
 
 5. Start the local server
 
-    ```bash
-    node index.js
-    ```
+   ```bash
+   node index.js
+   ```
 
-    or (if you want auto start if any change in code)
+   or (if you want auto start if any change in code)
 
-    ```bash
-    npm run dev
-    ```
+   ```bash
+   npm run dev
+   ```
 
 ## Postman Collection
 
