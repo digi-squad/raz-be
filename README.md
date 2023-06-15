@@ -18,8 +18,8 @@ Rest API for RAZ Furniture Shop
 ## Table of Contents
 
 - [Overview](#overview)
-- [Technologies Used](#technologies-used)
   - [Features](#features)
+- [Technologies Used](#technologies-used)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
